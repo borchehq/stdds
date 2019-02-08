@@ -1,5 +1,5 @@
-#ifndef ARRAYLIST_H
-#define ARRAYLIST_H
+#ifndef VECTOR_FDT_H
+#define VECTOR_FDT_H
 
 #include <stddef.h>
 #include <stdlib.h>
