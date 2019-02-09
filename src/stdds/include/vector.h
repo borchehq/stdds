@@ -19,175 +19,175 @@ struct vector_s{
   void (*delete_datatype)(void *data);
 };
 
-/**@brief creates a new list instance
-*  @param delete_datatype optional helper function for deleting struct content,
-*        will be ignored if NULL is passed
-*  @param size_element size of the elements of the list
-*  @param initial_size initial size of list
-*  @return returns a new list on success and NULL on error
+/**
+*   @brief Creates a new vector instance.
+*   @param delete_datatype Optional helper function for deleting struct content.
+*   delete_datatype will be ignored if NULL is passed.
+*   @param size_element Size of the elements in bytes.
+*   @param initial_size Initial size of the vector.
+*   @return Returns a new vector on success and NULL on error.
 */
-inline int new_vector(vector *list, size_t size_element,
+inline int new_vector(vector *vec, size_t size_element,
                       size_t initial_size, void (*delete_datatype)(void *data))
 {
-  //set standard alloc size
   if(initial_size == 0)
   {
     initial_size = INITIAL_CAP;
   }
-  //allocate array and return NULL on error
-  list->data = malloc(size_element * initial_size);
-  if(list->data == NULL)
+  vec->data = malloc(size_element * initial_size);
+  if(vec->data == NULL)
   {
     return -1;
   }
-  /*set metadata*/
-  list->allocated = initial_size;
-  list->occupied = 0;
-  list->size_element = size_element;
-  list->delete_datatype = delete_datatype;
+  vec->allocated = initial_size;
+  vec->occupied = 0;
+  vec->size_element = size_element;
+  vec->delete_datatype = delete_datatype;
   return 0;
 }
 
-/**@brief destructs the list and frees associated memory space*/
-inline void delete_vector(vector *list)
+/**
+*   @brief Destructs the vec and frees the associated memory.
+**/
+inline void delete_vector(vector *vec)
 {
-  if(list->delete_datatype != NULL)
+  if(vec->delete_datatype != NULL)
   {
-    for(size_t i = 0; i < list->occupied; i++)
+    for(size_t i = 0; i < vec->occupied; i++)
     {
-      list->delete_datatype(&list->data[list->size_element * i]);
+      vec->delete_datatype(&vec->data[vec->size_element * i]);
     }
   }
-  free(list->data);
+  free(vec->data);
 }
 
-/**@brief appends a new element to the end of the list
-*  @return -1 if no memory available and 0 on success
+/**
+*   @brief Appends a new element to the end of the vector.
+*   @return Returns -1 if no memory is available and 0 on success.
 */
-inline int append(vector *list, const void *element)
+inline int append(vector *vec, const void *element)
 {
-  byte_t *tmp = list->data;
-  if(list->allocated == list->occupied)
+  byte_t *tmp = vec->data;
+  if(vec->allocated == vec->occupied)
   {
-    //double the space
-    tmp = realloc(tmp, list->allocated * list->size_element * 2);
-    //check NULL
+    tmp = realloc(tmp, vec->allocated * vec->size_element * 2);
     if(tmp != NULL)
     {
-      list->data = tmp;
-      list->allocated *= 2;
+      vec->data = tmp;
+      vec->allocated *= 2;
     }
     else
     {
       return -1;
     }
   }
-  memcpy(&list->data[list->occupied * list->size_element],
-         element, list->size_element);
-  list->occupied++;
+  memcpy(&vec->data[vec->occupied * vec->size_element],
+         element, vec->size_element);
+  vec->occupied++;
   return 0;
 }
 
-/**@brief inserts the specified element at the specified position in this list
-*        shifts the element currently at that position (if any) and any subsequent
-*        elements to the right
-*  @return returns -1 on failure and 0 on success
+/**
+*   @brief Inserts the specified element at the specified position in this vec
+*   and shifts the element currently at that position and any subsequent
+*   elements to the right.
+*   @return Returns -1 on failure and 0 on success.
 */
-inline int insert(vector *list, const void *element, size_t index)
+inline int insert(vector *vec, const void *element, size_t index)
 {
-  byte_t *tmp = list->data;
-  if(list->allocated == list->occupied)
+  byte_t *tmp = vec->data;
+  if(vec->allocated == vec->occupied)
   {
-    /*double the space*/
-    tmp = realloc(tmp, list->allocated * list->size_element * 2);
-    /*check NULL*/
+    tmp = realloc(tmp, vec->allocated * vec->size_element * 2);
     if(tmp != NULL)
     {
-      list->data = tmp;
-      list->allocated *= 2;
+      vec->data = tmp;
+      vec->allocated *= 2;
     }
     else
     {
       return -1;
     }
   }
-  /*just append*/
-  if(index >= list->occupied)
+  // Just append.
+  if(index >= vec->occupied)
   {
-    memcpy(&list->data[list->occupied * list->size_element],
-           element, list->size_element);
+    memcpy(&vec->data[vec->occupied * vec->size_element],
+           element, vec->size_element);
   }
-  /*move all elements beginning from index to the right*/
+  // Move all elements beginning from index to the right.
   else{
-    memmove(&list->data[(index + 1) * list->size_element],
-            &list->data[index * list->size_element],
-            (list->occupied - index) * list->size_element);
-    memmove(&list->data[index * list->size_element], element,
-            list->size_element);
+    memmove(&vec->data[(index + 1) * vec->size_element],
+            &vec->data[index * vec->size_element],
+            (vec->occupied - index) * vec->size_element);
+    memmove(&vec->data[index * vec->size_element], element,
+            vec->size_element);
   }
-  list->occupied++;
+  vec->occupied++;
   return 0;
 }
 
-/**@brief retrieves the element at the specified index
-*  @return the corresponding element on success and NULL on error
+/**
+*   @brief Retrieves the element at the specified index.
+*   @return The corresponding element on success and NULL on error.
 */
-inline void *get(const vector *list, size_t index)
+inline void *get(const vector *vec, size_t index)
 {
-  if(index >= list->occupied)
+  if(index >= vec->occupied)
   {
     return NULL;
   }
-  return &list->data[list->size_element * index];
+  return &vec->data[vec->size_element * index];
 }
 
-/**@brief sets a new element at the specified index
-*  @return -1 if illegal index and 0 on success
+/**
+*   @brief Sets a new element at the specified index.
+*   @return Returns -1 if illegal index and 0 on success.
 */
-inline int set(vector *list, const void *element, size_t index)
+inline int set(vector *vec, const void *element, size_t index)
 {
-  if(index >= list->occupied)
+  if(index >= vec->occupied)
   {
     return -1;
   }
-  memmove(&list->data[index * list->size_element], element,
-          list->size_element);
+  memmove(&vec->data[index * vec->size_element], element,
+          vec->size_element);
   return 0;
 }
 
-/**@brief removes the element at the specified index and if applicable
-         calls delete_datatype()
-* @return -1 if no memory, -2 if illegal index and 0 on success
+/**
+*   @brief Removes the element at the specified index and if applicable
+*   calls delete_datatype().
+*   @return Returns -1 if no memory, -2 if illegal index and 0 on success.
 */
-inline int rem(vector *list, size_t index)
+inline int rem(vector *vec, size_t index)
 {
   size_t offset;
-  void *tmp = list->data;
-  /*check whether index is legal*/
-  if(index >= list->occupied)
+  void *tmp = vec->data;
+  // Check whether index is out of bounds.
+  if(index >= vec->occupied)
   {
     return -2;
   }
-  offset = list->occupied - 1 - index;
-  if(list->delete_datatype != NULL)
+  offset = vec->occupied - 1 - index;
+  if(vec->delete_datatype != NULL)
   {
-    list->delete_datatype(get(list, index));
+    vec->delete_datatype(get(vec, index));
   }
-  /*close gap if not the last element*/
-  if(index < list->occupied - 1)
+  // Close the gap if not the last element.
+  if(index < vec->occupied - 1)
   {
-    memmove(&list->data[index * list->size_element],
-            &list->data[(index + 1) * list->size_element],
-            offset * list->size_element);
+    memmove(&vec->data[index * vec->size_element],
+            &vec->data[(index + 1) * vec->size_element],
+            offset * vec->size_element);
   }
-  list->occupied--;
-  if(list->allocated >= 2 * MIN_CAP && list->allocated >= 2 * list->occupied)
+  vec->occupied--;
+  if(vec->allocated >= 2 * MIN_CAP && vec->allocated >= 2 * vec->occupied)
   {
-    tmp = realloc(tmp, (list->allocated / 2) * list->size_element);
-    /*check NULL*/
+    tmp = realloc(tmp, (vec->allocated / 2) * vec->size_element);
     if(tmp != NULL){
-      list->data = tmp;
-      list->allocated /= 2;
+      vec->data = tmp;
+      vec->allocated /= 2;
     }
     else
     {
@@ -197,34 +197,41 @@ inline int rem(vector *list, size_t index)
   return 0;
 }
 
-/**@brief returns the last element in the list*/
-inline void *get_last(const vector *list)
+/**
+*   @brief returns the last element in the vec
+**/
+inline void *get_last(const vector *vec)
 {
-    return &list->data[(list->occupied - 1) * list->size_element];
+    return &vec->data[(vec->occupied - 1) * vec->size_element];
 }
 
-/**@brief returns the number of elements in the list*/
-inline size_t size(const vector *list)
+/**
+*   @brief returns the number of elements in the vec.
+**/
+inline size_t size(const vector *vec)
 {
-  return list->occupied;
+  return vec->occupied;
 }
 
-/**@brief returns an array with the content of the specified vector type
-*  @return returns an array with the original content on success and NULL on error
-*/
-inline void *to_array(const vector *list)
+/**
+*   @brief Returns an array with the content of the specified vector type.
+*   @return Returns an array with the original content on success and NULL on
+*   error.
+**/
+inline void *to_array(const vector *vec)
 {
-  void *array = malloc(list->occupied * list->size_element);
+  void *array = malloc(vec->occupied * vec->size_element);
   if(array == NULL){
     return NULL;
   }
-  memcpy(array, list->data, list->occupied * list->size_element);
+  memcpy(array, vec->data, vec->occupied * vec->size_element);
   return array;
 }
 
-/**@brief sorts a list
-   @param compar pointer to compare function (see qsort)
-*/
-void sortv(vector *list, int (*compar)(const void *, const void*));
+/**
+*   @brief Sorts a vector (see qsort).
+*   @param compar Pointer to compare function (see qsort).
+**/
+void sortv(vector *vec, int (*compar)(const void *, const void *));
 
 #endif
