@@ -35,7 +35,7 @@ void *fill_vector()
   vector v; new_vector(&v, sizeof(size_t), SIZE, NULL);
   for(size_t i = 0; i < SIZE; i++)
   {
-    append(&v, &i);
+    push(&v, &i);
   }
   delete_vector(&v);
   return NULL;
