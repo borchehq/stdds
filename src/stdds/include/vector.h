@@ -282,7 +282,40 @@ inline int merge(vector *restrict vec_1, vector *restrict vec_2)
   return 0;
 }
 
-/**
+inline int split(vector *vec, vector *res, size_t index)
+{
+  if(index >= vec->occupied)
+  {
+    return -1;
+  }
+
+  int stat = new_vector(res, vec->size_element, (vec->occupied) - index,
+  vec->delete_datatype);
+
+  if(stat == -1)
+  {
+    return -1;
+  }
+
+  memcpy(res->data, &vec->data[index * vec->size_element],
+  ((vec->occupied) - index) * vec->size_element);
+  res->occupied = (vec->occupied) - index;
+
+  vec->occupied = index;
+
+  if(vec->allocated >= 2 * MIN_CAP && vec->allocated >= 2 * vec->occupied)
+  {
+    void *tmp = realloc(vec->data, (vec->allocated / 2) * vec->size_element);
+    if(tmp != NULL){
+      vec->data = tmp;
+      vec->allocated /= 2;
+    }
+  }
+
+  return 0;
+}
+
+/**vector *split(vector *vec, size_t index)
 *   @brief Sorts a vector (see qsort).
 *   @param compar Pointer to compare function (see qsort).
 **/

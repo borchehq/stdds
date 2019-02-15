@@ -167,11 +167,23 @@ int main(int argc, char const *argv[]) {
 
   merge(&v, &v2);
   printf("%lu\n", v.occupied);
-  printf("[\n");
+  printf("[");
   for(size_t i = 0; i < 40; i++){
     printf("%li ", *(size_t*)vec_at(&v, i));
   }
   printf("]\n");
 
+  delete_vector(&v2);
+  split(&v, &v2, 2);
+  printf("[");
+  for(size_t i = 0; i < v.occupied; i++){
+    printf("%li ", *(size_t*)vec_at(&v, i));
+  }
+  printf("]\n");
+  printf("[");
+  for(size_t i = 0; i < v2.occupied; i++){
+    printf("%li ", *(size_t*)vec_at(&v2, i));
+  }
+  printf("]\n");
   return 0;
 }
