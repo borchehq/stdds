@@ -1,2 +1,4 @@
 # ignore ctags
-./tags* 
+.tags* 
+#ignore .directory files
+.directory
