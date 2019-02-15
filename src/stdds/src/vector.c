@@ -12,7 +12,8 @@ extern int rem(vector *vec, size_t index);
 extern void *get_last(vector *vec);
 extern size_t size(const vector *vec);
 extern void *to_array(const vector *vec);
-void *at(vector *vec, size_t index);
+extern void *vec_at(vector *vec, size_t index);
+extern int merge(vector *restrict vec_1, vector *restrict vec_2);
 
 void sortv(vector *vec, int (*compar)(const void *, const void *))
 {

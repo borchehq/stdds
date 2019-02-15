@@ -11,7 +11,8 @@
 typedef struct vector_s vector;
 typedef unsigned char byte_t;
 
-struct vector_s{
+struct vector_s
+{
   byte_t *data;
   size_t allocated;
   size_t occupied;
@@ -61,12 +62,12 @@ inline void delete_vector(vector *vec)
   free(vec->data);
 }
 
-inline void *at(vector *vec, size_t index)
+inline void *vec_at(vector *vec, size_t index)
 {
   if(index >= vec->occupied)
-    {
-      return NULL;
-    }
+  {
+    return NULL;
+  }
   return &vec->data[vec->size_element * index];
 }
 
@@ -87,7 +88,7 @@ inline int rem(vector *vec, size_t index)
   offset = vec->occupied - 1 - index;
   if(vec->delete_datatype != NULL)
   {
-    vec->delete_datatype(at(vec, index));
+    vec->delete_datatype(vec_at(vec, index));
   }
   // Close the gap if not the last element.
   if(index < vec->occupied - 1)
@@ -259,6 +260,26 @@ inline void *to_array(const vector *vec)
   }
   memcpy(array, vec->data, vec->occupied * vec->size_element);
   return array;
+}
+
+inline int merge(vector *restrict vec_1, vector *restrict vec_2)
+{
+  void *tmp = realloc(vec_1->data,
+  (vec_1->allocated + vec_2->occupied) * vec_1->size_element);
+
+  if(tmp == NULL)
+  {
+    return -1;
+  }
+
+  vec_1->data = tmp;
+  vec_1->allocated += vec_2->occupied;
+  memcpy(&vec_1->data[vec_1->occupied * vec_1->size_element], vec_2->data,
+  vec_2->occupied * vec_2->size_element);
+  vec_1->occupied += vec_2->occupied;
+
+  delete_vector(vec_2);
+  return 0;
 }
 
 /**
