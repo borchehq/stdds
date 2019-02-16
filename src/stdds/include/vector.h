@@ -411,6 +411,9 @@ inline int clone(vector *const vec, vector *res)
 *   @brief Sorts a vector (see qsort).
 *   @param compar Pointer to compare function (see qsort).
 **/
-void sortv(vector *vec, int (*compar)(const void *, const void *));
+void sortv(vector *vec, int (*compar)(const void *, const void *))
+{
+  qsort(vec->data, vec->occupied, vec->size_element, compar);
+}
 
 #endif
