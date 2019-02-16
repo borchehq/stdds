@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define INITIAL_CAP 8
 #define MIN_CAP     8
@@ -26,8 +27,8 @@ struct vector_s
 *   delete_datatype will be ignored if NULL is passed.
 *   @param size_element Size of the elements in bytes.
 *   @param initial_size Initial size of the vector.
-*   @return Returns a new vector on success and NULL on error.
-*/
+*   @return Returns 0 on success and -1 if an error occured.
+**/
 inline int new_vector(vector *vec, size_t size_element,
                       size_t initial_size, void (*delete_datatype)(void *data))
 {
@@ -52,6 +53,10 @@ inline int new_vector(vector *vec, size_t size_element,
 **/
 inline void delete_vector(vector *vec)
 {
+  if(vec == NULL)
+  {
+    return;
+  }
   if(vec->delete_datatype != NULL)
   {
     for(size_t i = 0; i < vec->occupied; i++)
@@ -62,6 +67,13 @@ inline void delete_vector(vector *vec)
   free(vec->data);
 }
 
+/**
+*   @brief Returns a pointer to the element at index.
+*   @param vec The vector of which a pointer to the element with index index
+*   shall be returned.
+*   @param index Index of the vector to be looked at.
+*   @return Returns a pointer to the element in the vector with index index.
+**/
 inline void *vec_at(vector *vec, size_t index)
 {
   if(index >= vec->occupied)
@@ -72,16 +84,51 @@ inline void *vec_at(vector *vec, size_t index)
 }
 
 /**
-*   @brief Removes the element at the specified index and if applicable
+*   @brief Checks whether the vector is empty.
+*   @param vec The vector that shall be checked.
+*   @return Returns true if the vector is empty and false otherwise.
+**/
+inline bool is_empty(vector *vec)
+{
+  if(vec->occupied == 0)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+/**
+*   @brief Checks wheter the given index is out of bounds.
+*   @param vec The vector that shall be checked..
+*   @param index The index that shall be checked.
+*   @return Returns true if vector has an element on position index.
+**/
+inline bool index_valid(vector *vec, size_t index)
+{
+  if(vec->occupied <= index)
+  {
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+}
+
+/**
+*   @brief Removes the element at position index and if applicable
 *   calls delete_datatype().
 *   @return Returns -1 if no memory, -2 if illegal index and 0 on success.
-*/
+**/
 inline int rem(vector *vec, size_t index)
 {
   size_t offset;
   void *tmp = vec->data;
   // Check whether index is out of bounds.
-  if(index >= vec->occupied)
+  if(index_valid(vec, index))
   {
     return -2;
   }
@@ -110,9 +157,9 @@ inline int rem(vector *vec, size_t index)
 }
 
 /**
-*   @brief Appends a new element to the end of the vector.
+*   @brief Appends a new element at the end of the vector.
 *   @return Returns -1 if no memory is available and 0 on success.
-*/
+**/
 inline int push(vector *vec, void *element)
 {
   byte_t *tmp = vec->data;
@@ -137,6 +184,10 @@ inline int push(vector *vec, void *element)
 
 inline void *pop(vector *vec)
 {
+  if(is_empty(vec))
+  {
+    return NULL;
+  }
   void *elem = &vec->data[(vec->occupied - 1) * vec->size_element];
   void *ret = malloc(vec->size_element);
   if(ret == NULL)
@@ -150,11 +201,11 @@ inline void *pop(vector *vec)
 }
 
 /**
-*   @brief Inserts the specified element at the specified position in this vec
+*   @brief Inserts the specified element at the specified position in the vector
 *   and shifts the element currently at that position and any subsequent
 *   elements to the right.
 *   @return Returns -1 on failure and 0 on success.
-*/
+**/
 inline int insert(vector *vec, void *element, size_t index)
 {
   byte_t *tmp = vec->data;
@@ -178,7 +229,8 @@ inline int insert(vector *vec, void *element, size_t index)
            element, vec->size_element);
   }
   // Move all elements beginning from index to the right.
-  else{
+  else
+  {
     memmove(&vec->data[(index + 1) * vec->size_element],
             &vec->data[index * vec->size_element],
             (vec->occupied - index) * vec->size_element);
@@ -192,7 +244,7 @@ inline int insert(vector *vec, void *element, size_t index)
 /**
 *   @brief Retrieves the element at the specified index.
 *   @return The corresponding element on success and NULL on error.
-*/
+**/
 inline void *get(vector *vec, size_t index)
 {
   if(index >= vec->occupied)
@@ -211,8 +263,8 @@ inline void *get(vector *vec, size_t index)
 
 /**
 *   @brief Sets a new element at the specified index.
-*   @return Returns -1 if illegal index and 0 on success.
-*/
+*   @return Returns -1 if index is out of bounds and 0 on success.
+**/
 inline int set(vector *vec, void *element, size_t index)
 {
   if(index >= vec->occupied)
@@ -229,6 +281,10 @@ inline int set(vector *vec, void *element, size_t index)
 **/
 inline void *get_last(vector *vec)
 {
+  if(is_empty(vec))
+  {
+    return NULL;
+  }
   void *elem = &vec->data[(vec->occupied - 1) * vec->size_element];
   void *ret = malloc(vec->size_element);
   if(ret == NULL)
@@ -262,6 +318,13 @@ inline void *to_array(const vector *vec)
   return array;
 }
 
+/**
+*   @brief Merges to vectors.
+*   @param vec_1 The vector who is merged into.
+*   @param vec_2 The vector which will be merged in vec_1. vec_2 will be deleted
+*   afterwards.
+*   @return Returns 0 on success and -1 on failure.
+**/
 inline int merge(vector *restrict vec_1, vector *restrict vec_2)
 {
   void *tmp = realloc(vec_1->data,
@@ -282,6 +345,16 @@ inline int merge(vector *restrict vec_1, vector *restrict vec_2)
   return 0;
 }
 
+/**
+*   @brief Splits a vector at position index. The element at position index will
+*   be included in res.
+*   @param[in] vec The vector that is split. All elements >= index will be
+*   deleted.
+*   @param[out] res The resulting second vector. res includes all elements with
+*   index greater or equal index. res should be uninitialized.
+*   @param index The position where the vector shall be split at.
+*   @return Returns 0 on success and -1 otherwise.
+**/
 inline int split(vector *vec, vector *res, size_t index)
 {
   if(index >= vec->occupied)
@@ -315,7 +388,26 @@ inline int split(vector *vec, vector *res, size_t index)
   return 0;
 }
 
-/**vector *split(vector *vec, size_t index)
+/**
+*   @brief Clones a vector.
+*   @param[in] vec The vector that shall be cloned.
+*   @param[out] res The clone of vec. res should be uninitialized.
+*   @return Returns 0 on success and -1 on failure.
+**/
+inline int clone(vector *const vec, vector *res)
+{
+  int stat = new_vector(res, vec->size_element, vec->allocated,
+  vec->delete_datatype);
+  if(stat == -1)
+  {
+    return -1;
+  }
+  res->occupied = vec->occupied;
+  memcpy(res->data, vec->data, vec->size_element * vec->occupied);
+  return 0;
+}
+
+/**
 *   @brief Sorts a vector (see qsort).
 *   @param compar Pointer to compare function (see qsort).
 **/

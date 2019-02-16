@@ -185,5 +185,31 @@ int main(int argc, char const *argv[]) {
     printf("%li ", *(size_t*)vec_at(&v2, i));
   }
   printf("]\n");
+
+  index_valid(&v, 1) == 0 ? printf("false\n") :  printf("true\n");
+  index_valid(&v, 2) == 0 ? printf("false\n") :  printf("true\n");
+  index_valid(&v2, 37) == 0 ? printf("false\n") :  printf("true\n");
+  index_valid(&v2, 38) == 0 ? printf("false\n") :  printf("true\n");
+  bool empty = is_empty(&v);
+  empty == 0 ? printf("false\n") :  printf("true\n");
+  delete_vector(&v);
+  new_vector(&v, sizeof(size_t), 4, NULL);
+  empty = is_empty(&v);
+  empty == 0 ? printf("false\n") :  printf("true\n");
+  for(size_t i = 20; i > 0; i--){
+    push(&v, &i);
+  }
+  printf("[");
+  for(size_t i = 0; i < v.occupied; i++){
+    printf("%li ", *(size_t*)vec_at(&v, i));
+  }
+  printf("]\n");
+  delete_vector(&v2);
+  clone(&v, &v2);
+  printf("[");
+  for(size_t i = 0; i < v2.occupied; i++){
+    printf("%li ", *(size_t*)vec_at(&v2, i));
+  }
+  printf("]\n");
   return 0;
 }
