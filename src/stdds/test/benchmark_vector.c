@@ -11,6 +11,7 @@ struct test
 };
 
 #define SIZE 100000000
+#define SMALL 100000
 
 double time_elapsed(void *(*function)(void)){
   struct timeval tv_begin, tv_end;
@@ -41,6 +42,17 @@ void *fill_vector()
   return NULL;
 }
 
+void *benchmark_insert()
+{
+  vector v; new_vector(&v, sizeof(size_t), SIZE, NULL);
+  for(size_t i = 0; i < SMALL; i++)
+  {
+    insert(&v, &i, SMALL);
+  }
+  delete_vector(&v);
+  return NULL;
+}
+
 int main(int argc, char const *argv[]) {
   double time_array = time_elapsed(fill_array);
   double time_vector = time_elapsed(fill_vector);
@@ -48,5 +60,7 @@ int main(int argc, char const *argv[]) {
   printf("Time array: %.16f sec\n", time_array);
   printf("Time vector: %.16f sec\n", time_vector);
   printf("Overhead vector: %f\n", time_vector / time_array);
+
+  printf("Time insert(): %.16f sec\n", time_elapsed(benchmark_insert));
   return 0;
 }
