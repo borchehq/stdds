@@ -1,7 +1,7 @@
 #include "vector.h"
 
-extern int new_vector(vector *vec, size_t size_element,
-size_t initial_size, void (*delete_datatype)(void *data));
+extern int new_vector(vector *vec, size_t size_element, size_t initial_size,
+                      dsconf conf);
 extern int push(vector *vec, void *element);
 extern void *pop(vector *vec);
 extern void delete_vector(vector *vec);

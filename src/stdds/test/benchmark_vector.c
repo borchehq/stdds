@@ -13,7 +13,8 @@ struct test
 #define SIZE 100000000
 #define SMALL 100000
 
-double time_elapsed(void *(*function)(void)){
+double time_elapsed(void *(*function)(void))
+{
   struct timeval tv_begin, tv_end;
   gettimeofday(&tv_begin, NULL);
   function();
@@ -21,7 +22,8 @@ double time_elapsed(void *(*function)(void)){
   return ((tv_end.tv_sec * 1e6 + tv_end.tv_usec) - (tv_begin.tv_sec * 1e6 + tv_begin.tv_usec)) / (double)1e6;
 }
 
-void *fill_array(){
+void *fill_array()
+{
   size_t *vs = malloc(sizeof(size_t) * SIZE);
   for(size_t i = 0; i < SIZE; i++){
     vs[i] = i;
@@ -33,7 +35,8 @@ void *fill_array(){
 
 void *fill_vector()
 {
-  vector v; new_vector(&v, sizeof(size_t), SIZE, NULL);
+  dsconf conf = {NULL, NULL};
+  vector v; new_vector(&v, sizeof(size_t), SIZE, conf);
   for(size_t i = 0; i < SIZE; i++)
   {
     push(&v, &i);
@@ -44,7 +47,8 @@ void *fill_vector()
 
 void *benchmark_insert()
 {
-  vector v; new_vector(&v, sizeof(size_t), SIZE, NULL);
+  dsconf conf = {NULL, NULL};
+  vector v; new_vector(&v, sizeof(size_t), SIZE, conf);
   for(size_t i = 0; i < SMALL; i++)
   {
     insert(&v, &i, SMALL);
@@ -53,7 +57,8 @@ void *benchmark_insert()
   return NULL;
 }
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char const *argv[])
+{
   double time_array = time_elapsed(fill_array);
   double time_vector = time_elapsed(fill_vector);
 

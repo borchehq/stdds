@@ -9,8 +9,15 @@
 #define INITIAL_CAP 8
 #define MIN_CAP     8
 
+typedef struct type_conf_s dsconf;
 typedef struct vector_s vector;
 typedef unsigned char byte_t;
+
+struct type_conf_s
+{
+  int (*clone_ds)(void *data, void *res);
+  void (*delete_ds)(void *data);
+};
 
 struct vector_s
 {
@@ -18,19 +25,19 @@ struct vector_s
   size_t allocated;
   size_t occupied;
   size_t size_element;
-  void (*delete_datatype)(void *data);
+  dsconf conf;
 };
 
 /**
 *   @brief Creates a new vector instance.
-*   @param delete_datatype Optional helper function for deleting struct content.
-*   delete_datatype will be ignored if NULL is passed.
+*   @param delete_ds Optional helper function for deleting struct content.
+*   delete_ds will be ignored if NULL is passed.
 *   @param size_element Size of the elements in bytes.
 *   @param initial_size Initial size of the vector.
 *   @return Returns 0 on success and -1 if an error occured.
 **/
-inline int new_vector(vector *vec, size_t size_element,
-                      size_t initial_size, void (*delete_datatype)(void *data))
+inline int new_vector(vector *vec, size_t size_element, size_t initial_size,
+                      dsconf conf)
 {
   if(initial_size == 0)
   {
@@ -44,7 +51,7 @@ inline int new_vector(vector *vec, size_t size_element,
   vec->allocated = initial_size;
   vec->occupied = 0;
   vec->size_element = size_element;
-  vec->delete_datatype = delete_datatype;
+  vec->conf = conf;
   return 0;
 }
 
@@ -57,11 +64,11 @@ inline void delete_vector(vector *vec)
   {
     return;
   }
-  if(vec->delete_datatype != NULL)
+  if(vec->conf.delete_ds != NULL)
   {
     for(size_t i = 0; i < vec->occupied; i++)
     {
-      vec->delete_datatype(&vec->data[vec->size_element * i]);
+      vec->conf.delete_ds(&vec->data[vec->size_element * i]);
     }
   }
   free(vec->data);
@@ -120,7 +127,7 @@ inline bool index_valid(vector *vec, size_t index)
 
 /**
 *   @brief Removes the element at position index and if applicable
-*   calls delete_datatype().
+*   calls delete_ds().
 *   @return Returns -1 if no memory, -2 if illegal index and 0 on success.
 **/
 inline int rem(vector *vec, size_t index)
@@ -133,9 +140,9 @@ inline int rem(vector *vec, size_t index)
     return -2;
   }
   offset = vec->occupied - 1 - index;
-  if(vec->delete_datatype != NULL)
+  if(vec->conf.delete_ds != NULL)
   {
-    vec->delete_datatype(vec_at(vec, index));
+    vec->conf.delete_ds(vec_at(vec, index));
   }
   // Close the gap if not the last element.
   if(index < vec->occupied - 1)
@@ -341,6 +348,8 @@ inline int merge(vector *restrict vec_1, vector *restrict vec_2)
   vec_2->occupied * vec_2->size_element);
   vec_1->occupied += vec_2->occupied;
 
+  // We don't want to delete data that is on the heap.
+  vec_2->conf = (dsconf){NULL, NULL};
   delete_vector(vec_2);
   return 0;
 }
@@ -363,7 +372,7 @@ inline int split(vector *vec, vector *res, size_t index)
   }
 
   int stat = new_vector(res, vec->size_element, (vec->occupied) - index,
-  vec->delete_datatype);
+  vec->conf);
 
   if(stat == -1)
   {
@@ -396,14 +405,28 @@ inline int split(vector *vec, vector *res, size_t index)
 **/
 inline int clone(vector *const vec, vector *res)
 {
-  int stat = new_vector(res, vec->size_element, vec->allocated,
-  vec->delete_datatype);
+  int stat = new_vector(res, vec->size_element, vec->allocated, vec->conf);
   if(stat == -1)
   {
     return -1;
   }
   res->occupied = vec->occupied;
-  memcpy(res->data, vec->data, vec->size_element * vec->occupied);
+  if(vec->conf.clone_ds != NULL)
+  {
+    for(size_t i = 0; i < vec->occupied; i++)
+    {
+      int stat = vec->conf.clone_ds(&vec->data[i * vec->size_element],
+      &res->data[i * res->size_element]);
+      if(stat == -1)
+      {
+        return -1;
+      }
+    }
+  }
+  else
+  {
+    memcpy(res->data, vec->data, vec->size_element * vec->occupied);
+  }
   return 0;
 }
 
