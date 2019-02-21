@@ -135,7 +135,7 @@ inline int rem(vector *vec, size_t index)
   size_t offset;
   void *tmp = vec->data;
   // Check whether index is out of bounds.
-  if(index_valid(vec, index))
+  if(!index_valid(vec, index))
   {
     return -2;
   }
