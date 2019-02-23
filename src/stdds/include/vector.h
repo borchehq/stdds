@@ -379,10 +379,22 @@ inline int split(vector *vec, vector *res, size_t index)
     return -1;
   }
 
-  memcpy(res->data, &vec->data[index * vec->size_element],
-  ((vec->occupied) - index) * vec->size_element);
-  res->occupied = (vec->occupied) - index;
+  if(vec->conf.clone_ds != NULL)
+  {
+    for(size_t i = index; i < vec->occupied; i++)
+    {
+      vec->conf.clone_ds(&vec->data[i * vec->size_element],
+      &res->data[(i - index) * vec->size_element]);
+      vec->conf.delete_ds(&vec->data[i * vec->size_element]);
+    }
+  }
+  else
+  {
+    memcpy(res->data, &vec->data[index * vec->size_element],
+    ((vec->occupied) - index) * vec->size_element);
+  }
 
+  res->occupied = (vec->occupied) - index;
   vec->occupied = index;
 
   if(vec->allocated >= 2 * MIN_CAP && vec->allocated >= 2 * vec->occupied)
@@ -434,7 +446,7 @@ inline int clone(vector *const vec, vector *res)
 *   @brief Sorts a vector (see qsort).
 *   @param compar Pointer to compare function (see qsort).
 **/
-void sortv(vector *vec, int (*compar)(const void *, const void *))
+inline void sortv(vector *vec, int (*compar)(const void *, const void *))
 {
   qsort(vec->data, vec->occupied, vec->size_element, compar);
 }
