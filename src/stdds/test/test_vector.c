@@ -5,27 +5,38 @@
 
 #include "vector.h"
 
-typedef struct test_s
+void delete_ds(void *data)
 {
-  double *data;
-  size_t size;
-}test_s;
+  free(*(size_t**)data);
+}
 
-void delete_datatype(void *data)
+int clone_ds(void *ds, void *clone)
 {
-  test_s test = *(test_s*)data;
-  free(test.data);
+  *(size_t**)clone = malloc(sizeof(size_t));
+  memcpy(*(size_t**)clone, *(size_t**)ds, sizeof(size_t));
+  return 0;
 }
 
 int compare(const void *a, const void *b)
 {
-    if(*(size_t*)a > *(size_t*)b){
-      return 1;
-    }
-    if(*(size_t*)a < *(size_t*)b){
-      return -1;
-    }
+  if(*(size_t*)a > *(size_t*)b){
+    return 1;
+  }
+  if(*(size_t*)a < *(size_t*)b){
     return -1;
+  }
+  return -1;
+}
+
+void test_new_vector()
+{
+  dsconf conf = {clone_ds, delete_ds};
+  vector v; new_vector(&v, sizeof(size_t*), 1, conf);
+  size_t *elem = malloc(sizeof(size_t));
+  *elem = 21;
+  push(&v, &elem);
+  assert(**(size_t**)vec_at(&v, 0) == 21);
+  delete_vector(&v);
 }
 
 void test_push()
@@ -179,42 +190,47 @@ void test_sortv()
 
 void test_merge()
 {
-  dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
-  vector v2; new_vector(&v2, sizeof(size_t), 1, conf);
+  dsconf conf = {clone_ds, delete_ds};
+  vector v; new_vector(&v, sizeof(size_t*), 1, conf);
+  vector v2; new_vector(&v2, sizeof(size_t*), 1, conf);
   for(size_t i = 20; i > 0; i--)
   {
-    push(&v, &i);
-    push(&v2, &i);
+    size_t *elem = malloc(sizeof(size_t));
+    size_t *elem2 = malloc(sizeof(size_t));
+    *elem = *elem2 = i;
+    push(&v, &elem);
+    push(&v2, &elem2);
   }
     merge(&v, &v2);
     assert(size(&v) == 40);
     for(size_t i = 0; i < 20; i++)
     {
-      assert(*(size_t*)vec_at(&v, i) == *(size_t*)vec_at(&v, 20 + i));
+      assert(**(size_t**)vec_at(&v, i) == **(size_t**)vec_at(&v, 20 + i));
     }
     delete_vector(&v);
 }
 
 void test_split()
 {
-  dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
+  dsconf conf = {clone_ds, delete_ds};
+  vector v; new_vector(&v, sizeof(size_t*), 1, conf);
   vector v2;
   for(size_t i = 0; i < 20; i++)
   {
-    push(&v, &i);
+    size_t *elem = malloc(sizeof(size_t));
+    *elem = i;
+    push(&v, &elem);
   }
   split(&v, &v2, 2);
   assert(size(&v) == 2);
   assert(size(&v2) == 18);
   for(size_t i = 0; i < 2; i++)
   {
-    assert(*(size_t*)vec_at(&v, i) == i);
+    assert(**(size_t**)vec_at(&v, i) == i);
   }
   for(size_t i = 2; i < 20; i++)
   {
-    assert(*(size_t*)vec_at(&v2, i - 2) == i);
+    assert(**(size_t**)vec_at(&v2, i - 2) == i);
   }
   delete_vector(&v);
   delete_vector(&v2);
@@ -259,10 +275,29 @@ void test_clone()
   }
   delete_vector(&v);
   delete_vector(&v2);
+
+  conf = (dsconf){clone_ds, delete_ds};
+  new_vector(&v, sizeof(size_t), 0, conf);
+  for(size_t i = 0; i < 20; i++)
+  {
+    size_t *elem = malloc(sizeof(size_t));
+    *elem = i;
+    push(&v, &elem);
+  }
+  clone(&v, &v2);
+  assert(size(&v) == size(&v2));
+  for(size_t i = 0; i < 20; i++)
+  {
+    assert(**(size_t**)vec_at(&v, i) == **(size_t**)vec_at(&v2, i));
+  }
+  delete_vector(&v);
+  delete_vector(&v2);
 }
 
 int main(int argc, char const *argv[])
 {
+  printf("[i] Testing new_vector()...\n");
+  test_new_vector();
   printf("[i] Testing push()...\n");
   test_push();
   printf("[i] Testing vec_at()...\n");
