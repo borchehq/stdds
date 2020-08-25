@@ -83,6 +83,16 @@ inline void *vector_at(vector *vec, size_t index)
   return &vec->data[vec->size_element * index];
 }
 
+inline void *vector_front(vector *vec)
+{
+  return &vec->data[0];
+}
+
+inline void *vector_back(vector *vec)
+{
+ return &vec->data[vec->size_element * (vec->occupied - 1)];
+}
+
 /**
 *   @brief Checks whether the vector is empty.
 *   @param vec The vector that shall be checked.
@@ -160,7 +170,7 @@ inline int vector_remove(vector *vec, size_t index)
 *   @brief Appends a new element at the end of the vector.
 *   @return Returns -1 if no memory is available and 0 on success.
 **/
-inline int vector_push(vector *vec, void *element)
+inline int vector_push_back(vector *vec, void *element)
 {
   byte_t *tmp = vec->data;
   if(vec->allocated == vec->occupied)
@@ -182,7 +192,7 @@ inline int vector_push(vector *vec, void *element)
   return 0;
 }
 
-inline void *vector_pop(vector *vec)
+inline void *vector_pop_back(vector *vec)
 {
   if(vector_is_empty(vec))
   {
@@ -196,7 +206,8 @@ inline void *vector_pop(vector *vec)
   }
   memcpy(ret, elem, vec->size_element);
   // Delete elem.
-  vector_remove(vec, vec->size_element - 1);
+  vector_remove(vec, vec->occupied - 1);
+
   return ret;
 }
 
@@ -265,7 +276,7 @@ inline void *vector_get(vector *vec, size_t index)
 *   @brief Sets a new element at the specified index.
 *   @return Returns -1 if index is out of bounds and 0 on success.
 **/
-inline int vector_set(vector *vec, void *element, size_t index)
+inline int vector_assign(vector *vec, void *element, size_t index)
 {
   if(index >= vec->occupied)
   {
@@ -316,6 +327,28 @@ inline void *vector_to_array(const vector *vec)
   }
   memcpy(array, vec->data, vec->occupied * vec->size_element);
   return array;
+}
+
+inline int vector_reserve(vector *vec, size_t new_size)
+{
+  byte_t *tmp = vec->data;
+  tmp = realloc(tmp, new_size * vec->size_element);
+    if(tmp != NULL)
+    {
+      vec->data = tmp;
+      vec->allocated = new_size;
+      if(vec->allocated < vec->occupied)
+      {
+        vec->occupied = vec->allocated;
+      }
+      return 0;
+    }
+    return -1;
+}
+
+inline size_t vector_capacity(vector *vec)
+{
+  return vec->allocated;
 }
 
 /**

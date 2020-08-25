@@ -39,7 +39,7 @@ void *fill_vector()
   vector v; vector_new(&v, sizeof(size_t), SIZE, NULL);
   for(size_t i = 0; i < SIZE; i++)
   {
-    vector_push(&v, &i);
+    vector_push_back(&v, &i);
   }
   vector_delete(&v);
   return NULL;

@@ -34,19 +34,19 @@ void test_vector_new()
   vector v; vector_new(&v, sizeof(size_t*), 1, &conf);
   size_t *elem = malloc(sizeof(size_t));
   *elem = 21;
-  vector_push(&v, &elem);
+  vector_push_back(&v, &elem);
   assert(**(size_t**)vector_at(&v, 0) == 21);
   vector_delete(&v);
 }
 
-void test_vector_push()
+void test_vector_push_back()
 {
   dsconf conf = {NULL, NULL};
   vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    vector_push(&v, &i);
+    vector_push_back(&v, &i);
   }
   assert(num_push == vector_size(&v));
   vector_delete(&v);
@@ -59,7 +59,7 @@ void test_vector_at()
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    vector_push(&v, &i);
+    vector_push_back(&v, &i);
   }
   for(size_t i = 0; i < num_push; i++)
   {
@@ -76,7 +76,7 @@ void test_vector_get()
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    vector_push(&v, &i);
+    vector_push_back(&v, &i);
   }
   for(size_t i = 0; i < num_push; i++)
   {
@@ -94,7 +94,7 @@ void test_vector_remove()
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    vector_push(&v, &i);
+    vector_push_back(&v, &i);
   }
   size_t index_remove = num_push - 1000;
   size_t successor = *(size_t*)vector_at(&v, index_remove + 1);
@@ -107,19 +107,19 @@ void test_vector_remove()
   vector_delete(&v);
 }
 
-void test_vector_set()
+void test_vector_assign()
 {
   dsconf conf = {NULL, NULL};
   vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    vector_push(&v, &i);
+    vector_push_back(&v, &i);
   }
   size_t val = 7819;
   for(size_t i = 0; i < 10000; i++)
   {
-    vector_set(&v, &val, i);
+    vector_assign(&v, &val, i);
     assert(*(size_t*)vector_at(&v, i) == val);
   }
  vector_delete(&v);
@@ -132,7 +132,7 @@ void test_vector_to_array()
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    vector_push(&v, &i);
+    vector_push_back(&v, &i);
   }
   size_t *array = (size_t*)vector_to_array(&v);
   for(size_t i = 0; i < vector_size(&v); i++)
@@ -150,7 +150,7 @@ void test_vector_insert()
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    vector_push(&v, &i);
+    vector_push_back(&v, &i);
   }
   size_t element = 91909;
   size_t index = vector_size(&v) - 102;
@@ -176,8 +176,8 @@ void test_vector_sort()
   vector v2; vector_new(&v2, sizeof(size_t), 1, &conf);
   for(size_t i = 20; i > 0; i--)
   {
-    vector_push(&v, &i);
-    vector_push(&v2, &i);
+    vector_push_back(&v, &i);
+    vector_push_back(&v2, &i);
   }
   vector_sort(&v, compare);
   for(size_t i = 0; i < 20 ; i++)
@@ -198,8 +198,8 @@ void test_vector_merge()
     size_t *elem = malloc(sizeof(size_t));
     size_t *elem2 = malloc(sizeof(size_t));
     *elem = *elem2 = i;
-    vector_push(&v, &elem);
-    vector_push(&v2, &elem2);
+    vector_push_back(&v, &elem);
+    vector_push_back(&v2, &elem2);
   }
     vector_merge(&v, &v2);
     assert(vector_size(&v) == 40);
@@ -219,7 +219,7 @@ void test_vector_split()
   {
     size_t *elem = malloc(sizeof(size_t));
     *elem = i;
-    vector_push(&v, &elem);
+    vector_push_back(&v, &elem);
   }
   vector_split(&v, &v2, 2);
   assert(vector_size(&v) == 2);
@@ -242,7 +242,7 @@ void test_vector_is_empty()
   vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   assert(vector_is_empty(&v) == true);
   size_t val = 1;
-  vector_push(&v, &val);
+  vector_push_back(&v, &val);
   assert(vector_is_empty(&v) == false);
   vector_delete(&v);
 }
@@ -252,7 +252,7 @@ void test_vector_index_valid()
   dsconf conf = {NULL, NULL};
   vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   size_t val = 1;
-  vector_push(&v, &val);
+  vector_push_back(&v, &val);
   assert(vector_index_valid(&v, 0) == true);
   assert(vector_index_valid(&v, 1) == false);
   vector_delete(&v);
@@ -265,7 +265,7 @@ void test_vector_clone()
   vector v2;
   for(size_t i = 0; i < 20; i++)
   {
-    vector_push(&v, &i);
+    vector_push_back(&v, &i);
   }
   vector_clone(&v, &v2);
   assert(vector_size(&v) == vector_size(&v2));
@@ -282,7 +282,7 @@ void test_vector_clone()
   {
     size_t *elem = malloc(sizeof(size_t));
     *elem = i;
-    vector_push(&v, &elem);
+    vector_push_back(&v, &elem);
   }
   vector_clone(&v, &v2);
   assert(vector_size(&v) == vector_size(&v2));
@@ -294,35 +294,122 @@ void test_vector_clone()
   vector_delete(&v2);
 }
 
+void test_vector_reserve()
+{
+  vector v; 
+  vector_new(&v, sizeof(double), 0, NULL);
+  vector_reserve(&v, 35);
+  for(double i = 0; i < 35; i++)
+  {
+    vector_push_back(&v, &i);
+  }
+  for(double i = 0; i < 35; i++)
+  {
+    assert(*(double*)vector_at(&v, i) == i);
+  }
+  vector_reserve(&v, 21);
+  assert(vector_size(&v) == 21);
+  for(double i = 0; i < 21; i++)
+  {
+    assert(*(double*)vector_at(&v, i) == i);
+  }
+  vector_delete(&v);
+}
+
+void test_vector_capacity()
+{
+  vector v; 
+  vector_new(&v, sizeof(double), 0, NULL);
+   for(double i = 0; i < 35; i++)
+  {
+    vector_push_back(&v, &i);
+  }
+  assert(vector_capacity(&v) == 64);
+  vector_delete(&v);
+}
+
+void test_vector_front()
+{
+  vector v; 
+  vector_new(&v, sizeof(double), 0, NULL);
+  for(double i = 0; i < 35; i++)
+  {
+    vector_push_back(&v, &i);
+  }
+  assert(*(double*)vector_front(&v) == 0.0);
+  vector_delete(&v);
+}
+
+void test_vector_back()
+{
+  vector v; 
+  vector_new(&v, sizeof(double), 0, NULL);
+  for(double i = 0; i < 35; i++)
+  {
+    vector_push_back(&v, &i);
+  }
+  assert(*(double*)vector_back(&v) == 34.0);
+  vector_delete(&v);
+}
+
+void test_vector_pop_back()
+{
+  vector v; 
+  vector_new(&v, sizeof(double), 0, NULL);
+  for(double i = 0; i < 35; i++)
+  {
+    vector_push_back(&v, &i);
+  }
+  assert(v.occupied == 35);
+  for(double i = 34; i >= 0; i--)
+  {
+    double *tmp = vector_pop_back(&v);
+    assert(*tmp == i);
+    assert(v.occupied == i);
+    free(tmp);
+  }
+  vector_delete(&v);
+}
+
 int main(int argc, char const *argv[])
 {
   printf("[i] Testing vector_new()...\n");
   test_vector_new();
-  printf("[i] Testing vector_push()...\n");
-  test_vector_push();
+  printf("[i] Testing vector_push_back()...\n");
+  test_vector_push_back();
   printf("[i] Testing vector_at()...\n");
   test_vector_at();
   printf("[i] Testing vector_get()...\n");
   test_vector_get();
   printf("[i] Testing vector_remove()...\n");
   test_vector_remove();
-  printf("[i] Testing vector_set()...\n");
-  test_vector_set();
+  printf("[i] Testing vector_assign()...\n");
+  test_vector_assign();
   printf("[i] Testing vector_to_array()...\n");
   test_vector_to_array();
   printf("[i] Testing vector_insert()...\n");
   test_vector_insert();
   printf("[i] Testing vector_sort()...\n");
   test_vector_sort();
-  printf("[i] Testing merge()...\n");
+  printf("[i] Testing vector_merge()...\n");
   test_vector_merge();
-  printf("[i] Testing split()...\n");
+  printf("[i] Testing vector_split()...\n");
   test_vector_split();
-  printf("[i] Testing is_empty()...\n");
+  printf("[i] Testing vector_is_empty()...\n");
   test_vector_is_empty();
   printf("[i] Testing vector_index_valid()...\n");
   test_vector_index_valid();
-  printf("[i] Testing clone()...\n");
+  printf("[i] Testing vector_clone()...\n");
   test_vector_clone();
+  printf("[i] Testing vector_reserve()...\n");
+  test_vector_reserve();
+  printf("[i] Testing vector_capacity()...\n");
+  test_vector_capacity();
+  printf("[i] Testing vector_front()...\n");
+  test_vector_front();
+  printf("[i] Testing vector_back()...\n");
+  test_vector_back();
+  printf("[i] Testing vector_pop_back()...\n");
+  test_vector_pop_back();
   return 0;
 }
