@@ -2,3 +2,5 @@
 .tags* 
 #ignore .directory files
 .directory
+# Ignore vsc directory
+.vscode

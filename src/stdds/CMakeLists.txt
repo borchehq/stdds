@@ -1,7 +1,7 @@
 # Define library. Only source files here!
 project(libstdds VERSION 0.1 LANGUAGES C)
 
-add_library(stdds SHARED src/vector.c)
+add_library(stdds SHARED src/vector.c src/list.c)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build
@@ -37,8 +37,11 @@ export(TARGETS stdds FILE stddsConfig.cmake)
 # Every library has unit tests, of course
 add_executable(testvector test/test_vector.c)
 add_executable(benchvector test/benchmark_vector.c)
+add_executable(testlist test/test_list.c)
 
 target_link_libraries(testvector stdds)
 target_link_libraries(benchvector stdds)
+target_link_libraries(testlist stdds)
 
 add_test(testvector testvector)
+add_test(testlist testlist)
