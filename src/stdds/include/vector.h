@@ -186,9 +186,18 @@ inline int vector_push_back(vector *vec, void *element)
       return -1;
     }
   }
-  memcpy(&vec->data[vec->occupied * vec->size_element],
-         element, vec->size_element);
+  
+  if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+  {
+    vec->conf->copy_ds(element, &vec->data[vec->occupied * vec->size_element]);
+  }
+  else
+  {
+    memcpy(&vec->data[vec->occupied * vec->size_element],
+           element, vec->size_element);
+  }
   vec->occupied++;
+  
   return 0;
 }
 
@@ -236,8 +245,15 @@ inline int vector_insert(vector *vec, void *element, size_t index)
   // Just append.
   if(index >= vec->occupied)
   {
-    memcpy(&vec->data[vec->occupied * vec->size_element],
-           element, vec->size_element);
+    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    {
+      vec->conf->copy_ds(element, &vec->data[vec->occupied * vec->size_element]);
+    }
+    else
+    {
+      memcpy(&vec->data[vec->occupied * vec->size_element],
+             element, vec->size_element);
+    }
   }
   // Move all elements beginning from index to the right.
   else
@@ -245,8 +261,15 @@ inline int vector_insert(vector *vec, void *element, size_t index)
     memmove(&vec->data[(index + 1) * vec->size_element],
             &vec->data[index * vec->size_element],
             (vec->occupied - index) * vec->size_element);
-    memmove(&vec->data[index * vec->size_element], element,
-            vec->size_element);
+    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    {
+      vec->conf->copy_ds(element, &vec->data[index * vec->size_element]);
+    }
+    else
+    {
+      memmove(&vec->data[index * vec->size_element], element,
+              vec->size_element);
+    }
   }
   vec->occupied++;
   return 0;
@@ -282,8 +305,17 @@ inline int vector_assign(vector *vec, void *element, size_t index)
   {
     return -1;
   }
-  memmove(&vec->data[index * vec->size_element], element,
-          vec->size_element);
+
+  if(vec->conf != NULL && vec->conf->copy_ds != NULL && vec->conf->delete_ds != NULL) 
+  {
+    vec->conf->delete_ds(&vec->data[index * vec->size_element]);
+    vec->conf->copy_ds(element, &vec->data[index * vec->size_element]);
+  }
+  else
+  {
+    memmove(&vec->data[index * vec->size_element], element,
+            vec->size_element);
+  }
   return 0;
 }
 
@@ -321,11 +353,21 @@ inline size_t vector_size(const vector *vec)
 **/
 inline void *vector_to_array(const vector *vec)
 {
-  void *array = malloc(vec->occupied * vec->size_element);
+  byte_t *array = malloc(vec->occupied * vec->size_element);
   if(array == NULL){
     return NULL;
   }
-  memcpy(array, vec->data, vec->occupied * vec->size_element);
+  if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+  {
+    for(size_t i = 0; i < vec->occupied; i++)
+    {
+      vec->conf->copy_ds(&vec->data[i * vec->size_element], &array[i * vec->size_element]);
+    }
+  }
+  else
+  {
+    memcpy(array, vec->data, vec->occupied * vec->size_element);
+  }
   return array;
 }
 
@@ -405,11 +447,11 @@ inline int vector_split(vector *vec, vector *res, size_t index)
     return -1;
   }
 
-  if(vec->conf != NULL && vec->conf->clone_ds != NULL)
+  if(vec->conf != NULL && vec->conf->copy_ds != NULL)
   {
     for(size_t i = index; i < vec->occupied; i++)
     {
-      vec->conf->clone_ds(&vec->data[i * vec->size_element],
+      vec->conf->copy_ds(&vec->data[i * vec->size_element],
       &res->data[(i - index) * vec->size_element]);
       vec->conf->delete_ds(&vec->data[i * vec->size_element]);
     }
@@ -449,11 +491,11 @@ inline int vector_clone(vector *const vec, vector *res)
     return -1;
   }
   res->occupied = vec->occupied;
-  if(vec->conf != NULL && vec->conf->clone_ds != NULL)
+  if(vec->conf != NULL && vec->conf->copy_ds != NULL)
   {
     for(size_t i = 0; i < vec->occupied; i++)
     {
-      int stat = vec->conf->clone_ds(&vec->data[i * vec->size_element],
+      int stat = vec->conf->copy_ds(&vec->data[i * vec->size_element],
       &res->data[i * res->size_element]);
       if(stat == -1)
       {

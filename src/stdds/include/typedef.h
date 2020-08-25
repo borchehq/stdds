@@ -6,7 +6,7 @@ typedef struct type_conf_s dsconf;
 
 struct type_conf_s
 {
-  int (*clone_ds)(void *data, void *res);
+  int (*copy_ds)(void *data, void *res);
   void (*delete_ds)(void *data);
 };
 #endif

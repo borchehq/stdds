@@ -10,7 +10,7 @@ void delete_ds(void *data)
   free(*(size_t**)data);
 }
 
-int clone_ds(void *ds, void *clone)
+int copy_ds(void *ds, void *clone)
 {
   *(size_t**)clone = malloc(sizeof(size_t));
   memcpy(*(size_t**)clone, *(size_t**)ds, sizeof(size_t));
@@ -30,7 +30,7 @@ int compare(const void *a, const void *b)
 
 void test_vector_new()
 {
-  dsconf conf = {clone_ds, delete_ds};
+  dsconf conf = {copy_ds, delete_ds};
   vector v; vector_new(&v, sizeof(size_t*), 1, &conf);
   size_t *elem = malloc(sizeof(size_t));
   *elem = 21;
@@ -49,6 +49,24 @@ void test_vector_push_back()
     vector_push_back(&v, &i);
   }
   assert(num_push == vector_size(&v));
+  vector_delete(&v);
+
+  conf = (dsconf){copy_ds, delete_ds};
+  vector_new(&v, sizeof(size_t), 1, &conf);
+  size_t *x[num_push];
+  for(size_t i = 0; i < num_push; i++)
+  {
+    x[i] = malloc(sizeof(size_t));
+    *x[i] = i;
+    vector_push_back(&v, &x[i]);
+  }
+   for(size_t i = 0; i < num_push; i++)
+  {
+    assert(**(size_t**)vector_at(&v, i) == *x[i]);
+    assert(*(size_t**)vector_at(&v, i) != x[i]);
+    free(x[i]);
+    assert(**(size_t**)vector_at(&v, i) == i);
+  }
   vector_delete(&v);
 }
 
@@ -123,6 +141,31 @@ void test_vector_assign()
     assert(*(size_t*)vector_at(&v, i) == val);
   }
  vector_delete(&v);
+
+ conf = (dsconf){copy_ds, delete_ds};
+ vector_new(&v, sizeof(size_t), 1, &conf);
+ size_t *x[num_push];
+ size_t *y[num_push];
+  for(size_t i = 0; i < num_push; i++)
+  {
+    x[i] = malloc(sizeof(size_t));
+    y[num_push - 1 - i] = malloc(sizeof(size_t));
+    *x[i] = i;
+    *y[num_push - 1 - i] = i;
+    vector_push_back(&v, &x[i]);
+    free(x[i]);
+  }
+  for(size_t i = 0; i < num_push; i++)
+  {
+    vector_assign(&v, &y[i], i);
+  }
+  for(size_t i = 0; i < num_push; i++)
+  { 
+    assert(**(size_t**)vector_at(&v, i) == *y[i]);
+    free(y[i]);
+    assert(**(size_t**)vector_at(&v, i) == num_push - 1 - i);   
+  }
+  vector_delete(&v);
 }
 
 void test_vector_to_array()
@@ -140,6 +183,26 @@ void test_vector_to_array()
     assert(*(size_t*)vector_at(&v, i) == array[i]);
   }
   free(array);
+  vector_delete(&v);
+
+  conf = (dsconf){copy_ds, delete_ds};
+  vector_new(&v, sizeof(size_t), 1, &conf);
+  size_t *x[num_push];
+
+  for(size_t i = 0; i < num_push; i++)
+  {
+    x[i] = malloc(sizeof(size_t));
+    *x[i] = i;
+    vector_push_back(&v, &x[i]);
+    free(x[i]);
+  }
+  size_t **array2 = (size_t**)vector_to_array(&v);
+  for(size_t i = 0; i < vector_size(&v); i++)
+  {
+    assert(**(size_t**)vector_at(&v, i) == *array2[i]);
+    free(array2[i]);
+  }
+  free(array2);
   vector_delete(&v);
 }
 
@@ -167,6 +230,24 @@ void test_vector_insert()
   }
   free(immediate);
   vector_delete(&v);
+
+  conf = (dsconf){copy_ds, delete_ds};
+  vector_new(&v, sizeof(size_t), 1, &conf);
+  size_t *x[num_push];
+  for(size_t i = 0; i < num_push; i++)
+  {
+    x[i] = malloc(sizeof(size_t));
+    *x[i] = i;
+    vector_insert(&v, &x[i], 0);
+  }
+   for(size_t i = 0; i < num_push; i++)
+  {
+    assert(**(size_t**)vector_at(&v, i) == *x[num_push - 1 - i]);
+    assert(*(size_t**)vector_at(&v, i) != x[num_push - 1 - i]);
+    free(x[num_push - 1 - i]);
+    assert(**(size_t**)vector_at(&v, i) == num_push - 1 - i);
+  }
+  vector_delete(&v);
 }
 
 void test_vector_sort()
@@ -190,7 +271,7 @@ void test_vector_sort()
 
 void test_vector_merge()
 {
-  dsconf conf = {clone_ds, delete_ds};
+  dsconf conf = {copy_ds, delete_ds};
   vector v; vector_new(&v, sizeof(size_t*), 1, &conf);
   vector v2; vector_new(&v2, sizeof(size_t*), 1, &conf);
   for(size_t i = 20; i > 0; i--)
@@ -212,7 +293,7 @@ void test_vector_merge()
 
 void test_vector_split()
 {
-  dsconf conf = {clone_ds, delete_ds};
+  dsconf conf = {copy_ds, delete_ds};
   vector v; vector_new(&v, sizeof(size_t*), 1, &conf);
   vector v2;
   for(size_t i = 0; i < 20; i++)
@@ -276,7 +357,7 @@ void test_vector_clone()
   vector_delete(&v);
   vector_delete(&v2);
 
-  conf = (dsconf){clone_ds, delete_ds};
+  conf = (dsconf){copy_ds, delete_ds};
   vector_new(&v, sizeof(size_t), 0, &conf);
   for(size_t i = 0; i < 20; i++)
   {
