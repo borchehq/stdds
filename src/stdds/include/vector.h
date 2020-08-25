@@ -1,23 +1,16 @@
 #ifndef VECTOR_FDT_H
 #define VECTOR_FDT_H
 
-#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 
+#include "typedef.h"
+
 #define INITIAL_CAP 8
 #define MIN_CAP     8
 
-typedef struct type_conf_s dsconf;
 typedef struct vector_s vector;
-typedef unsigned char byte_t;
-
-struct type_conf_s
-{
-  int (*clone_ds)(void *data, void *res);
-  void (*delete_ds)(void *data);
-};
 
 struct vector_s
 {
@@ -25,7 +18,7 @@ struct vector_s
   size_t allocated;
   size_t occupied;
   size_t size_element;
-  dsconf conf;
+  dsconf *conf;
 };
 
 /**
@@ -36,8 +29,8 @@ struct vector_s
 *   @param initial_size Initial size of the vector.
 *   @return Returns 0 on success and -1 if an error occured.
 **/
-inline int new_vector(vector *vec, size_t size_element, size_t initial_size,
-                      dsconf conf)
+inline int vector_new(vector *vec, size_t size_element, size_t initial_size,
+                      dsconf *conf)
 {
   if(initial_size == 0)
   {
@@ -58,17 +51,17 @@ inline int new_vector(vector *vec, size_t size_element, size_t initial_size,
 /**
 *   @brief Destructs the vec and frees the associated memory.
 **/
-inline void delete_vector(vector *vec)
+inline void vector_delete(vector *vec)
 {
   if(vec == NULL)
   {
     return;
   }
-  if(vec->conf.delete_ds != NULL)
+  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
   {
     for(size_t i = 0; i < vec->occupied; i++)
     {
-      vec->conf.delete_ds(&vec->data[vec->size_element * i]);
+      vec->conf->delete_ds(&vec->data[vec->size_element * i]);
     }
   }
   free(vec->data);
@@ -81,7 +74,7 @@ inline void delete_vector(vector *vec)
 *   @param index Index of the vector to be looked at.
 *   @return Returns a pointer to the element in the vector with index index.
 **/
-inline void *vec_at(vector *vec, size_t index)
+inline void *vector_at(vector *vec, size_t index)
 {
   if(index >= vec->occupied)
   {
@@ -95,7 +88,7 @@ inline void *vec_at(vector *vec, size_t index)
 *   @param vec The vector that shall be checked.
 *   @return Returns true if the vector is empty and false otherwise.
 **/
-inline bool is_empty(vector *vec)
+inline bool vector_is_empty(vector *vec)
 {
   if(vec->occupied == 0)
   {
@@ -113,7 +106,7 @@ inline bool is_empty(vector *vec)
 *   @param index The index that shall be checked.
 *   @return Returns true if vector has an element on position index.
 **/
-inline bool index_valid(vector *vec, size_t index)
+inline bool vector_index_valid(vector *vec, size_t index)
 {
   if(vec->occupied <= index)
   {
@@ -130,19 +123,19 @@ inline bool index_valid(vector *vec, size_t index)
 *   calls delete_ds().
 *   @return Returns -1 if no memory, -2 if illegal index and 0 on success.
 **/
-inline int rem(vector *vec, size_t index)
+inline int vector_remove(vector *vec, size_t index)
 {
   size_t offset;
   void *tmp = vec->data;
   // Check whether index is out of bounds.
-  if(!index_valid(vec, index))
+  if(!vector_index_valid(vec, index))
   {
     return -2;
   }
   offset = vec->occupied - 1 - index;
-  if(vec->conf.delete_ds != NULL)
+  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
   {
-    vec->conf.delete_ds(vec_at(vec, index));
+    vec->conf->delete_ds(vector_at(vec, index));
   }
   // Close the gap if not the last element.
   if(index < vec->occupied - 1)
@@ -167,7 +160,7 @@ inline int rem(vector *vec, size_t index)
 *   @brief Appends a new element at the end of the vector.
 *   @return Returns -1 if no memory is available and 0 on success.
 **/
-inline int push(vector *vec, void *element)
+inline int vector_push(vector *vec, void *element)
 {
   byte_t *tmp = vec->data;
   if(vec->allocated == vec->occupied)
@@ -189,9 +182,9 @@ inline int push(vector *vec, void *element)
   return 0;
 }
 
-inline void *pop(vector *vec)
+inline void *vector_pop(vector *vec)
 {
-  if(is_empty(vec))
+  if(vector_is_empty(vec))
   {
     return NULL;
   }
@@ -203,7 +196,7 @@ inline void *pop(vector *vec)
   }
   memcpy(ret, elem, vec->size_element);
   // Delete elem.
-  rem(vec, vec->size_element - 1);
+  vector_remove(vec, vec->size_element - 1);
   return ret;
 }
 
@@ -213,7 +206,7 @@ inline void *pop(vector *vec)
 *   elements to the right.
 *   @return Returns -1 on failure and 0 on success.
 **/
-inline int insert(vector *vec, void *element, size_t index)
+inline int vector_insert(vector *vec, void *element, size_t index)
 {
   byte_t *tmp = vec->data;
   if(vec->allocated == vec->occupied)
@@ -252,7 +245,7 @@ inline int insert(vector *vec, void *element, size_t index)
 *   @brief Retrieves the element at the specified index.
 *   @return The corresponding element on success and NULL on error.
 **/
-inline void *get(vector *vec, size_t index)
+inline void *vector_get(vector *vec, size_t index)
 {
   if(index >= vec->occupied)
   {
@@ -272,7 +265,7 @@ inline void *get(vector *vec, size_t index)
 *   @brief Sets a new element at the specified index.
 *   @return Returns -1 if index is out of bounds and 0 on success.
 **/
-inline int set(vector *vec, void *element, size_t index)
+inline int vector_set(vector *vec, void *element, size_t index)
 {
   if(index >= vec->occupied)
   {
@@ -286,9 +279,9 @@ inline int set(vector *vec, void *element, size_t index)
 /**
 *   @brief returns the last element in the vec
 **/
-inline void *get_last(vector *vec)
+inline void *vector_get_last(vector *vec)
 {
-  if(is_empty(vec))
+  if(vector_is_empty(vec))
   {
     return NULL;
   }
@@ -305,7 +298,7 @@ inline void *get_last(vector *vec)
 /**
 *   @brief returns the number of elements in the vec.
 **/
-inline size_t size(const vector *vec)
+inline size_t vector_size(const vector *vec)
 {
   return vec->occupied;
 }
@@ -315,7 +308,7 @@ inline size_t size(const vector *vec)
 *   @return Returns an array with the original content on success and NULL on
 *   error.
 **/
-inline void *to_array(const vector *vec)
+inline void *vector_to_array(const vector *vec)
 {
   void *array = malloc(vec->occupied * vec->size_element);
   if(array == NULL){
@@ -332,7 +325,7 @@ inline void *to_array(const vector *vec)
 *   afterwards.
 *   @return Returns 0 on success and -1 on failure.
 **/
-inline int merge(vector *restrict vec_1, vector *restrict vec_2)
+inline int vector_merge(vector *restrict vec_1, vector *restrict vec_2)
 {
   void *tmp = realloc(vec_1->data,
   (vec_1->allocated + vec_2->occupied) * vec_1->size_element);
@@ -349,8 +342,8 @@ inline int merge(vector *restrict vec_1, vector *restrict vec_2)
   vec_1->occupied += vec_2->occupied;
 
   // We don't want to delete data that is on the heap.
-  vec_2->conf = (dsconf){NULL, NULL};
-  delete_vector(vec_2);
+  vec_2->conf = NULL;
+  vector_delete(vec_2);
   return 0;
 }
 
@@ -364,14 +357,14 @@ inline int merge(vector *restrict vec_1, vector *restrict vec_2)
 *   @param index The position where the vector shall be split at.
 *   @return Returns 0 on success and -1 otherwise.
 **/
-inline int split(vector *vec, vector *res, size_t index)
+inline int vector_split(vector *vec, vector *res, size_t index)
 {
   if(index >= vec->occupied)
   {
     return -1;
   }
 
-  int stat = new_vector(res, vec->size_element, (vec->occupied) - index,
+  int stat = vector_new(res, vec->size_element, (vec->occupied) - index,
   vec->conf);
 
   if(stat == -1)
@@ -379,13 +372,13 @@ inline int split(vector *vec, vector *res, size_t index)
     return -1;
   }
 
-  if(vec->conf.clone_ds != NULL)
+  if(vec->conf != NULL && vec->conf->clone_ds != NULL)
   {
     for(size_t i = index; i < vec->occupied; i++)
     {
-      vec->conf.clone_ds(&vec->data[i * vec->size_element],
+      vec->conf->clone_ds(&vec->data[i * vec->size_element],
       &res->data[(i - index) * vec->size_element]);
-      vec->conf.delete_ds(&vec->data[i * vec->size_element]);
+      vec->conf->delete_ds(&vec->data[i * vec->size_element]);
     }
   }
   else
@@ -415,19 +408,19 @@ inline int split(vector *vec, vector *res, size_t index)
 *   @param[out] res The clone of vec. res should be uninitialized.
 *   @return Returns 0 on success and -1 on failure.
 **/
-inline int clone(vector *const vec, vector *res)
+inline int vector_clone(vector *const vec, vector *res)
 {
-  int stat = new_vector(res, vec->size_element, vec->allocated, vec->conf);
+  int stat = vector_new(res, vec->size_element, vec->allocated, vec->conf);
   if(stat == -1)
   {
     return -1;
   }
   res->occupied = vec->occupied;
-  if(vec->conf.clone_ds != NULL)
+  if(vec->conf != NULL && vec->conf->clone_ds != NULL)
   {
     for(size_t i = 0; i < vec->occupied; i++)
     {
-      int stat = vec->conf.clone_ds(&vec->data[i * vec->size_element],
+      int stat = vec->conf->clone_ds(&vec->data[i * vec->size_element],
       &res->data[i * res->size_element]);
       if(stat == -1)
       {
@@ -446,7 +439,7 @@ inline int clone(vector *const vec, vector *res)
 *   @brief Sorts a vector (see qsort).
 *   @param compar Pointer to compare function (see qsort).
 **/
-inline void sortv(vector *vec, int (*compar)(const void *, const void *))
+inline void vector_sort(vector *vec, int (*compar)(const void *, const void *))
 {
   qsort(vec->data, vec->occupied, vec->size_element, compar);
 }
