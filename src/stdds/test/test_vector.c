@@ -28,301 +28,301 @@ int compare(const void *a, const void *b)
   return -1;
 }
 
-void test_new_vector()
+void test_vector_new()
 {
   dsconf conf = {clone_ds, delete_ds};
-  vector v; new_vector(&v, sizeof(size_t*), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t*), 1, &conf);
   size_t *elem = malloc(sizeof(size_t));
   *elem = 21;
-  push(&v, &elem);
-  assert(**(size_t**)vec_at(&v, 0) == 21);
-  delete_vector(&v);
+  vector_push(&v, &elem);
+  assert(**(size_t**)vector_at(&v, 0) == 21);
+  vector_delete(&v);
 }
 
-void test_push()
+void test_vector_push()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    push(&v, &i);
+    vector_push(&v, &i);
   }
-  assert(num_push == size(&v));
-  delete_vector(&v);
+  assert(num_push == vector_size(&v));
+  vector_delete(&v);
 }
 
-void test_vec_at()
+void test_vector_at()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    push(&v, &i);
+    vector_push(&v, &i);
   }
   for(size_t i = 0; i < num_push; i++)
   {
-    assert(i == *(size_t*)vec_at(&v, i));
+    assert(i == *(size_t*)vector_at(&v, i));
   }
-  delete_vector(&v);
+  vector_delete(&v);
 }
 
 
-void test_get()
+void test_vector_get()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    push(&v, &i);
+    vector_push(&v, &i);
   }
   for(size_t i = 0; i < num_push; i++)
   {
-    void *res = get(&v, i);
+    void *res = vector_get(&v, i);
     assert(i == *(size_t*)res);
     free(res);
   }
-  delete_vector(&v);
+  vector_delete(&v);
 }
 
-void test_rem()
+void test_vector_remove()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    push(&v, &i);
+    vector_push(&v, &i);
   }
   size_t index_remove = num_push - 1000;
-  size_t successor = *(size_t*)vec_at(&v, index_remove + 1);
-  for(size_t i = index_remove; i < size(&v); i++)
+  size_t successor = *(size_t*)vector_at(&v, index_remove + 1);
+  for(size_t i = index_remove; i < vector_size(&v); i++)
   {
-    int status = rem(&v, index_remove);
-    assert(*(size_t*)vec_at(&v, index_remove) == successor);
-    successor = *(size_t*)vec_at(&v, index_remove + 1);
+    int status = vector_remove(&v, index_remove);
+    assert(*(size_t*)vector_at(&v, index_remove) == successor);
+    successor = *(size_t*)vector_at(&v, index_remove + 1);
   }
-  delete_vector(&v);
+  vector_delete(&v);
 }
 
-void test_set()
+void test_vector_set()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    push(&v, &i);
+    vector_push(&v, &i);
   }
   size_t val = 7819;
   for(size_t i = 0; i < 10000; i++)
   {
-    set(&v, &val, i);
-    assert(*(size_t*)vec_at(&v, i) == val);
+    vector_set(&v, &val, i);
+    assert(*(size_t*)vector_at(&v, i) == val);
   }
-  delete_vector(&v);
+ vector_delete(&v);
 }
 
-void test_to_array()
+void test_vector_to_array()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    push(&v, &i);
+    vector_push(&v, &i);
   }
-  size_t *array = (size_t*)to_array(&v);
-  for(size_t i = 0; i < size(&v); i++)
+  size_t *array = (size_t*)vector_to_array(&v);
+  for(size_t i = 0; i < vector_size(&v); i++)
   {
-    assert(*(size_t*)vec_at(&v, i) == array[i]);
+    assert(*(size_t*)vector_at(&v, i) == array[i]);
   }
   free(array);
-  delete_vector(&v);
+  vector_delete(&v);
 }
 
-void test_insert()
+void test_vector_insert()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   size_t num_push = 10000;
   for(size_t i = 0; i < num_push; i++)
   {
-    push(&v, &i);
+    vector_push(&v, &i);
   }
   size_t element = 91909;
-  size_t index = size(&v) - 102;
-  size_t *immediate = malloc(sizeof(size_t) * (size(&v) - index));
-  for(size_t i = 0; i < size(&v) - index; i++)
+  size_t index = vector_size(&v) - 102;
+  size_t *immediate = malloc(sizeof(size_t) * (vector_size(&v) - index));
+  for(size_t i = 0; i < vector_size(&v) - index; i++)
   {
-    immediate[i] = *(size_t*)vec_at(&v, index + i);
+    immediate[i] = *(size_t*)vector_at(&v, index + i);
   }
-  insert(&v, &element, index);
-  assert(size(&v) == 10001);
-  assert(*(size_t*)vec_at(&v, index) == element);
-  for(size_t i = 0; i < size(&v) - 1 - index; i++){
-    assert(immediate[i] == *(size_t*)vec_at(&v, index + i + 1));
+  vector_insert(&v, &element, index);
+  assert(vector_size(&v) == 10001);
+  assert(*(size_t*)vector_at(&v, index) == element);
+  for(size_t i = 0; i < vector_size(&v) - 1 - index; i++){
+    assert(immediate[i] == *(size_t*)vector_at(&v, index + i + 1));
   }
   free(immediate);
-  delete_vector(&v);
+  vector_delete(&v);
 }
 
-void test_sortv()
+void test_vector_sort()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
-  vector v2; new_vector(&v2, sizeof(size_t), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t), 1, &conf);
+  vector v2; vector_new(&v2, sizeof(size_t), 1, &conf);
   for(size_t i = 20; i > 0; i--)
   {
-    push(&v, &i);
-    push(&v2, &i);
+    vector_push(&v, &i);
+    vector_push(&v2, &i);
   }
-  sortv(&v, compare);
+  vector_sort(&v, compare);
   for(size_t i = 0; i < 20 ; i++)
   {
-    assert(*(size_t*)vec_at(&v, i) == *(size_t*)vec_at(&v2, 19 - i));
+    assert(*(size_t*)vector_at(&v, i) == *(size_t*)vector_at(&v2, 19 - i));
   }
-  delete_vector(&v);
-  delete_vector(&v2);
+  vector_delete(&v);
+  vector_delete(&v2);
 }
 
-void test_merge()
+void test_vector_merge()
 {
   dsconf conf = {clone_ds, delete_ds};
-  vector v; new_vector(&v, sizeof(size_t*), 1, conf);
-  vector v2; new_vector(&v2, sizeof(size_t*), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t*), 1, &conf);
+  vector v2; vector_new(&v2, sizeof(size_t*), 1, &conf);
   for(size_t i = 20; i > 0; i--)
   {
     size_t *elem = malloc(sizeof(size_t));
     size_t *elem2 = malloc(sizeof(size_t));
     *elem = *elem2 = i;
-    push(&v, &elem);
-    push(&v2, &elem2);
+    vector_push(&v, &elem);
+    vector_push(&v2, &elem2);
   }
-    merge(&v, &v2);
-    assert(size(&v) == 40);
+    vector_merge(&v, &v2);
+    assert(vector_size(&v) == 40);
     for(size_t i = 0; i < 20; i++)
     {
-      assert(**(size_t**)vec_at(&v, i) == **(size_t**)vec_at(&v, 20 + i));
+      assert(**(size_t**)vector_at(&v, i) == **(size_t**)vector_at(&v, 20 + i));
     }
-    delete_vector(&v);
+    vector_delete(&v);
 }
 
-void test_split()
+void test_vector_split()
 {
   dsconf conf = {clone_ds, delete_ds};
-  vector v; new_vector(&v, sizeof(size_t*), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t*), 1, &conf);
   vector v2;
   for(size_t i = 0; i < 20; i++)
   {
     size_t *elem = malloc(sizeof(size_t));
     *elem = i;
-    push(&v, &elem);
+    vector_push(&v, &elem);
   }
-  split(&v, &v2, 2);
-  assert(size(&v) == 2);
-  assert(size(&v2) == 18);
+  vector_split(&v, &v2, 2);
+  assert(vector_size(&v) == 2);
+  assert(vector_size(&v2) == 18);
   for(size_t i = 0; i < 2; i++)
   {
-    assert(**(size_t**)vec_at(&v, i) == i);
+    assert(**(size_t**)vector_at(&v, i) == i);
   }
   for(size_t i = 2; i < 20; i++)
   {
-    assert(**(size_t**)vec_at(&v2, i - 2) == i);
+    assert(**(size_t**)vector_at(&v2, i - 2) == i);
   }
-  delete_vector(&v);
-  delete_vector(&v2);
+  vector_delete(&v);
+  vector_delete(&v2);
 }
 
-void test_is_empty()
+void test_vector_is_empty()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
-  assert(is_empty(&v) == true);
+  vector v; vector_new(&v, sizeof(size_t), 1, &conf);
+  assert(vector_is_empty(&v) == true);
   size_t val = 1;
-  push(&v, &val);
-  assert(is_empty(&v) == false);
-  delete_vector(&v);
+  vector_push(&v, &val);
+  assert(vector_is_empty(&v) == false);
+  vector_delete(&v);
 }
 
-void test_index_valid()
+void test_vector_index_valid()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 1, conf);
+  vector v; vector_new(&v, sizeof(size_t), 1, &conf);
   size_t val = 1;
-  push(&v, &val);
-  assert(index_valid(&v, 0) == true);
-  assert(index_valid(&v, 1) == false);
-  delete_vector(&v);
+  vector_push(&v, &val);
+  assert(vector_index_valid(&v, 0) == true);
+  assert(vector_index_valid(&v, 1) == false);
+  vector_delete(&v);
 }
 
-void test_clone()
+void test_vector_clone()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), 0, conf);
+  vector v; vector_new(&v, sizeof(size_t), 0, &conf);
   vector v2;
   for(size_t i = 0; i < 20; i++)
   {
-    push(&v, &i);
+    vector_push(&v, &i);
   }
-  clone(&v, &v2);
-  assert(size(&v) == size(&v2));
+  vector_clone(&v, &v2);
+  assert(vector_size(&v) == vector_size(&v2));
   for(size_t i = 0; i < 20; i++)
   {
-    assert(*(size_t*)vec_at(&v, i) == *(size_t*)vec_at(&v2, i));
+    assert(*(size_t*)vector_at(&v, i) == *(size_t*)vector_at(&v2, i));
   }
-  delete_vector(&v);
-  delete_vector(&v2);
+  vector_delete(&v);
+  vector_delete(&v2);
 
   conf = (dsconf){clone_ds, delete_ds};
-  new_vector(&v, sizeof(size_t), 0, conf);
+  vector_new(&v, sizeof(size_t), 0, &conf);
   for(size_t i = 0; i < 20; i++)
   {
     size_t *elem = malloc(sizeof(size_t));
     *elem = i;
-    push(&v, &elem);
+    vector_push(&v, &elem);
   }
-  clone(&v, &v2);
-  assert(size(&v) == size(&v2));
+  vector_clone(&v, &v2);
+  assert(vector_size(&v) == vector_size(&v2));
   for(size_t i = 0; i < 20; i++)
   {
-    assert(**(size_t**)vec_at(&v, i) == **(size_t**)vec_at(&v2, i));
+    assert(**(size_t**)vector_at(&v, i) == **(size_t**)vector_at(&v2, i));
   }
-  delete_vector(&v);
-  delete_vector(&v2);
+  vector_delete(&v);
+  vector_delete(&v2);
 }
 
 int main(int argc, char const *argv[])
 {
-  printf("[i] Testing new_vector()...\n");
-  test_new_vector();
-  printf("[i] Testing push()...\n");
-  test_push();
-  printf("[i] Testing vec_at()...\n");
-  test_vec_at();
-  printf("[i] Testing get()...\n");
-  test_get();
-  printf("[i] Testing rem()...\n");
-  test_rem();
-  printf("[i] Testing set()...\n");
-  test_set();
-  printf("[i] Testing to_array()...\n");
-  test_to_array();
-  printf("[i] Testing insert()...\n");
-  test_insert();
-  printf("[i] Testing sortv()...\n");
-  test_sortv();
+  printf("[i] Testing vector_new()...\n");
+  test_vector_new();
+  printf("[i] Testing vector_push()...\n");
+  test_vector_push();
+  printf("[i] Testing vector_at()...\n");
+  test_vector_at();
+  printf("[i] Testing vector_get()...\n");
+  test_vector_get();
+  printf("[i] Testing vector_remove()...\n");
+  test_vector_remove();
+  printf("[i] Testing vector_set()...\n");
+  test_vector_set();
+  printf("[i] Testing vector_to_array()...\n");
+  test_vector_to_array();
+  printf("[i] Testing vector_insert()...\n");
+  test_vector_insert();
+  printf("[i] Testing vector_sort()...\n");
+  test_vector_sort();
   printf("[i] Testing merge()...\n");
-  test_merge();
+  test_vector_merge();
   printf("[i] Testing split()...\n");
-  test_split();
+  test_vector_split();
   printf("[i] Testing is_empty()...\n");
-  test_is_empty();
-  printf("[i] Testing index_valid()...\n");
-  test_index_valid();
+  test_vector_is_empty();
+  printf("[i] Testing vector_index_valid()...\n");
+  test_vector_index_valid();
   printf("[i] Testing clone()...\n");
-  test_clone();
+  test_vector_clone();
   return 0;
 }

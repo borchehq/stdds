@@ -36,24 +36,24 @@ void *fill_array()
 void *fill_vector()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), SIZE, conf);
+  vector v; vector_new(&v, sizeof(size_t), SIZE, NULL);
   for(size_t i = 0; i < SIZE; i++)
   {
-    push(&v, &i);
+    vector_push(&v, &i);
   }
-  delete_vector(&v);
+  vector_delete(&v);
   return NULL;
 }
 
-void *benchmark_insert()
+void *benchmark_vector_insert()
 {
   dsconf conf = {NULL, NULL};
-  vector v; new_vector(&v, sizeof(size_t), SIZE, conf);
+  vector v; vector_new(&v, sizeof(size_t), SIZE, NULL);
   for(size_t i = 0; i < SMALL; i++)
   {
-    insert(&v, &i, SMALL);
+    vector_insert(&v, &i, SMALL);
   }
-  delete_vector(&v);
+  vector_delete(&v);
   return NULL;
 }
 
@@ -66,6 +66,6 @@ int main(int argc, char const *argv[])
   printf("Time vector: %.16f sec\n", time_vector);
   printf("Overhead vector: %f\n", time_vector / time_array);
 
-  printf("Time insert(): %.16f sec\n", time_elapsed(benchmark_insert));
+  printf("Time insert(): %.16f sec\n", time_elapsed(benchmark_vector_insert));
   return 0;
 }
