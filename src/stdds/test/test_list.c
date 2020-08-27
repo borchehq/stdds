@@ -1,7 +1,20 @@
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "list.h"
+
+void delete_ds(void *data)
+{
+  free(*(size_t**)data);
+}
+
+int copy_ds(void *ds, void *clone)
+{
+  *(size_t**)clone = malloc(sizeof(size_t));
+  memcpy(*(size_t**)clone, *(size_t**)ds, sizeof(size_t));
+  return 0;
+}
 
 void test_list_new()
 {
@@ -12,6 +25,7 @@ void test_list_new()
   assert(list.size_element == sizeof(double));
   assert(list.size == 0);
   assert(list.conf == NULL);
+  list_delete(&list);
 }
 
 void test_list_push_front()
@@ -33,6 +47,29 @@ void test_list_push_front()
   assert(*(double*)(list.tail->data) == 6.0);
   assert(*(double*)(list.tail->prev->data) == 5.0);
   assert(*(double*)(list.tail->prev->prev->data) == 7.3);
+  list_delete(&list);
+
+  dsconf conf = {copy_ds, delete_ds};
+  size_t *x[10];
+  list_new(&list, sizeof(size_t*), &conf);
+
+  for(size_t i = 0; i < 10; i++)
+  {
+    x[i] = malloc(sizeof(size_t));
+    *x[i] = i;
+    list_push_front(&list, &x[i]);
+  }
+  for(size_t i = 0; i < 10; i++)
+  {
+    size_t **tmp = (size_t**)list_pop_back(&list);
+    assert(**tmp == *x[i]);
+    assert(*tmp != x[i]);
+    free(x[i]);
+    assert(**tmp == i);
+    delete_ds(tmp);
+    free(tmp);
+  }
+  list_delete(&list);
 }
 
 void test_list_pop_front()
@@ -82,6 +119,29 @@ void test_list_push_back()
   assert(*(double*)(list.head->data) == 6.0);
   assert(*(double*)(list.head->next->data) == 5.0);
   assert(*(double*)(list.head->next->next->data) == 7.3);
+  list_delete(&list);
+
+  dsconf conf = {copy_ds, delete_ds};
+  size_t *x[10];
+  list_new(&list, sizeof(size_t*), &conf);
+
+  for(size_t i = 0; i < 10; i++)
+  {
+    x[i] = malloc(sizeof(size_t));
+    *x[i] = i;
+    list_push_back(&list, &x[i]);
+  }
+  for(size_t i = 0; i < 10; i++)
+  {
+    size_t **tmp = (size_t**)list_pop_front(&list);
+    assert(**tmp == *x[i]);
+    assert(*tmp != x[i]);
+    free(x[i]);
+    assert(**tmp == i);
+    delete_ds(tmp);
+    free(tmp);
+  }
+  list_delete(&list);
 }
 
 void test_list_pop_back()
@@ -134,6 +194,40 @@ void test_list_insert()
   assert(*(double*)list.tail->prev->data == c);
   assert(*(double*)list.tail->prev->prev->data == a);
   assert(list.size == 4);
+  list_delete(&list);
+
+  dsconf conf = {copy_ds, delete_ds};
+  size_t *x[10];
+  list_new(&list, sizeof(size_t*), &conf);
+
+  for(size_t i = 0; i < 10; i++)
+  {
+    x[i] = malloc(sizeof(size_t));
+    *x[i] = i;
+    list_insert(&list, 1, &x[i]);
+  }
+
+  size_t **tmp = (size_t**)list_pop_back(&list);
+  assert(**tmp == 1);
+  delete_ds(tmp);
+  free(tmp);
+  free(x[1]);
+  tmp = (size_t**)list_pop_front(&list);
+  assert(**tmp == 0);
+  delete_ds(tmp);
+  free(tmp);
+  free(x[0]);
+  for(size_t i = 2; i < 10; i++)
+  {
+    tmp = (size_t**)list_pop_back(&list);
+    assert(**tmp == *x[i]);
+    assert(*tmp != x[i]);
+    free(x[i]);
+    assert(**tmp == i);
+    delete_ds(tmp);
+    free(tmp);
+  }
+  list_delete(&list);
 }
 
 void test_list_erase()

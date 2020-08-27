@@ -24,7 +24,14 @@ int list_push_front(list *list, void *element)
     return -1;
   }
 
-  memcpy(data, element, list->size_element);
+  if(list->conf != NULL && list->conf->copy_ds != NULL) 
+  {
+    list->conf->copy_ds(element, data);
+  }
+  else
+  {
+    memcpy(data, element, list->size_element);
+  }
   node->data = data;
   if(list->size == 0)
   {
@@ -80,7 +87,14 @@ int list_push_back(list *list, void *element)
     return -1;
   }
 
+  if(list->conf != NULL && list->conf->copy_ds != NULL) 
+  {
+    list->conf->copy_ds(element, data);
+  }
+  else
+  {
   memcpy(data, element, list->size_element);
+  }
   node->data = data;
   if(list->size == 0)
   {
@@ -136,7 +150,14 @@ int list_insert(list *list, size_t position, void *element)
     return -1;
   }
 
-  memcpy(data, element, list->size_element);
+  if(list->conf != NULL && list->conf->copy_ds != NULL) 
+  {
+    list->conf->copy_ds(element, data);
+  }
+  else
+  {
+    memcpy(data, element, list->size_element);
+  }
   new_node->data = data;
 
   if(list->size == 0)
