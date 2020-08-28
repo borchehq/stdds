@@ -37,10 +37,12 @@ export(TARGETS stdds FILE stddsConfig.cmake)
 # Every library has unit tests, of course
 add_executable(testvector test/test_vector.c)
 add_executable(benchvector test/benchmark_vector.c)
+add_executable(benchmark_list test/benchmark_list.c)
 add_executable(testlist test/test_list.c)
 
 target_link_libraries(testvector stdds)
 target_link_libraries(benchvector stdds)
+target_link_libraries(benchmark_list stdds)
 target_link_libraries(testlist stdds)
 
 add_test(testvector testvector)
