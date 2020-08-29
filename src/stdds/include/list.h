@@ -2,7 +2,7 @@
 #define LIST_FDT_H
 
 #include <stdlib.h>
-#include <string.h>
+#include <stdbool.h>
 
 #include "typedef.h"
 
@@ -132,5 +132,37 @@ inline int list_erase(list *list, size_t position)
 
 void list_clear(list *list);
 void list_delete(list *list);
+
+inline bool list_empty(list *list)
+{
+  if(list->size == 0)
+  {
+    return true;
+  }
+  return false;
+}
+
+inline size_t list_size(list *list)
+{
+  return list->size;
+}
+
+inline void *list_front(list *list)
+{
+  if(list->size == 0)
+  {
+    return NULL;
+  }
+  return list->head->data;
+}
+
+inline void *list_back(list *list)
+{
+  if(list->size == 0)
+  {
+    return NULL;
+  }
+  return list->tail->data;
+}
 
 #endif

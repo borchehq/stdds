@@ -271,6 +271,72 @@ void test_list_clear()
   assert(list.head == NULL);
 }
 
+void test_list_empty()
+{
+  list list;
+  list_new(&list, sizeof(double), NULL);
+  double a = 6.0;
+  double b = 5.0;
+  double c = 7.3;
+
+  assert(list_empty(&list) == true);
+  list_push_back(&list, &a);
+  list_push_back(&list, &b);
+  list_push_back(&list, &c);
+  assert(list_empty(&list) == false);
+  list_clear(&list);
+  assert(list_empty(&list) == true);
+  list_delete(&list);
+}
+
+void test_list_size()
+{
+  list list;
+  list_new(&list, sizeof(double), NULL);
+  double a = 6.0;
+
+  assert(list_size(&list) == 0);
+  list_push_back(&list, &a);
+  assert(list_size(&list) == 1);
+  list_delete(&list);
+}
+
+void test_list_front()
+{
+  list list;
+  double a = 6.0;
+  double b = 5.0;
+  double c = 7.3;
+  list_new(&list, sizeof(double), NULL);
+  
+  assert(list_front(&list) == NULL);
+  list_push_back(&list, &a);
+  assert(*(double*)list_front(&list) == a);
+  list_push_front(&list, &b);
+  assert(*(double*)list_front(&list) == b);
+  list_push_front(&list, &c);
+  assert(*(double*)list_front(&list) == c);
+  list_delete(&list);
+}
+
+void test_list_back()
+{
+  list list;
+  double a = 6.0;
+  double b = 5.0;
+  double c = 7.3;
+  list_new(&list, sizeof(double), NULL);
+  
+  assert(list_front(&list) == NULL);
+  list_push_front(&list, &a);
+  assert(*(double*)list_back(&list) == a);
+  list_push_back(&list, &b);
+  assert(*(double*)list_back(&list) == b);
+  list_push_back(&list, &c);
+  assert(*(double*)list_back(&list) == c);
+  list_delete(&list);
+}
+
 int main(int argc, char const *argv[])
 {
   printf("[i] Testing list_new()...\n");
@@ -297,4 +363,16 @@ int main(int argc, char const *argv[])
   printf("[i] Testing list_clear()...\n");
   test_list_clear();
   printf("[ok] Testing list_clear() successful...\n");
+  printf("[i] Testing list_empty()...\n");
+  test_list_empty();
+  printf("[ok] Testing list_empty() successful...\n");
+  printf("[i] Testing list_size()...\n");
+  test_list_size();
+  printf("[ok] Testing list_size() successful...\n");
+  printf("[i] Testing list_front()...\n");
+  test_list_front();
+  printf("[ok] Testing list_front() successful...\n");
+  printf("[i] Testing list_back()...\n");
+  test_list_back();
+  printf("[ok] Testing list_back() successful...\n");
 }

@@ -1,7 +1,6 @@
-#include "list.h"
-#include <stdio.h>
-#include <assert.h>
 #include <string.h>
+
+#include "list.h"
 
 extern int list_new(list *list, size_t size_element, dsconf *conf);
 
@@ -199,3 +198,8 @@ void list_delete(list *list)
   list->head = NULL;
   list->tail = NULL;
 }
+
+ extern bool list_empty(list *list);
+ extern size_t list_size(list *list);
+ extern void *list_front(list *list);
+ extern void *list_back(list *list);
