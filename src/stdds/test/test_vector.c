@@ -28,6 +28,14 @@ int compare(const void *a, const void *b)
   return -1;
 }
 
+int construct_ds(void *ds)
+{
+  *(size_t**)ds = malloc(sizeof(size_t));
+  size_t x = 27;
+  **(size_t**)ds = (size_t)27;
+  return 0;
+}
+
 void test_vector_new()
 {
   dsconf conf = {copy_ds, delete_ds};
@@ -452,6 +460,69 @@ void test_vector_pop_back()
   vector_delete(&v);
 }
 
+void test_vector_resize()
+{
+  vector v; 
+  vector_new(&v, sizeof(double), 0, NULL);
+  double a = 9;
+
+  for(double i = 0; i < 35; i++)
+  {
+    vector_push_back(&v, &i);
+  }
+  vector_resize(&v, 7);
+  assert(v.occupied == 7);
+  assert(v.allocated == 8);
+  for(double i = 0; i < 7; i++)
+  {
+    assert(*(double*)vector_at(&v, (size_t)i) == i);
+  }
+  vector_delete(&v);
+
+  vector_new(&v, sizeof(double), 0, NULL);
+  for(double i = 0; i < 35; i++)
+  {
+    vector_push_back(&v, &i);
+  }
+  vector_resize(&v, 200);
+  assert(v.occupied == 200);
+  assert(v.allocated == 200);
+  vector_assign(&v, &a, 199);
+  assert(*(double*)vector_at(&v, 199) == a);
+  vector_delete(&v);
+
+  dsconf conf = {copy_ds, delete_ds, construct_ds};
+  vector_new(&v, sizeof(size_t*), 0, &conf);
+
+  for(size_t i = 0; i < 35; i++)
+  {
+    size_t *x = malloc(sizeof(size_t));
+    *x = i;
+    vector_push_back(&v, &x);
+    free(x);
+  }
+  vector_resize(&v, 200);
+  assert(v.occupied == 200);
+  assert(v.allocated == 200);
+  for(size_t i = 0; i < 35; i++)
+  {
+    assert(**(size_t**)vector_at(&v, i) == i);
+  }
+ 
+  for(size_t i = 35; i < 200 ; i++)
+  {
+    assert(**(size_t**)vector_at(&v, i) == 27);
+  }
+  vector_resize(&v, 5);
+  assert(v.occupied == 5);
+  assert(v.allocated == 8);
+  for(size_t i = 0; i < 5; i++)
+  {
+    assert(**(size_t**)vector_at(&v, i) == i);
+  }
+  vector_delete(&v);
+}
+
 int main(int argc, char const *argv[])
 {
   printf("[i] Testing vector_new()...\n");
@@ -492,5 +563,7 @@ int main(int argc, char const *argv[])
   test_vector_back();
   printf("[i] Testing vector_pop_back()...\n");
   test_vector_pop_back();
+  printf("[i] Testing vector_resize()...\n");
+  test_vector_resize();
   return 0;
 }

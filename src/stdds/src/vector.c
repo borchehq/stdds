@@ -23,3 +23,4 @@ extern bool vector_empty(vector *vec);
 extern bool vector_index_valid(vector *vec, size_t index);
 extern int vector_clone(vector *const vec, vector *res);
 extern void vector_sort(vector *vec, int (*compar)(const void *, const void *));
+extern int vector_resize(vector *vec, size_t size);

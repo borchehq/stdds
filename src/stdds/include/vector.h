@@ -519,4 +519,44 @@ inline void vector_sort(vector *vec, int (*compar)(const void *, const void *))
   qsort(vec->data, vec->occupied, vec->size_element, compar);
 }
 
+inline int vector_resize(vector *vec, size_t size)
+{
+  size_t size_realloc = size >= MIN_CAP ? size : MIN_CAP;
+  byte_t *tmp = NULL;
+
+  if(size <= vec->occupied)
+  {
+    if(vec->conf != NULL && vec->conf->delete_ds != NULL) 
+    {
+      for(size_t i = size; i < vec->occupied; i++)
+      {
+        vec->conf->delete_ds(&vec->data[i * vec->size_element]);
+      }
+    }
+  }
+  
+  tmp = realloc(vec->data, size_realloc * vec->size_element);
+  if(tmp == NULL)
+  {
+    return -1;
+  }
+  
+  if(size > vec->occupied)
+  {
+    if(vec->conf != NULL && vec->conf->construct_ds != NULL) 
+    {
+      for(size_t i = vec->occupied; i < size; i++)
+      { 
+        vec->conf->construct_ds(&tmp[i * vec->size_element]);
+      }
+    }
+  }
+ 
+  vec->occupied = size;
+  vec->allocated = size_realloc;
+  vec->data = tmp;
+
+  return 0;
+}
+
 #endif
