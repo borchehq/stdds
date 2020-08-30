@@ -98,7 +98,7 @@ inline void *vector_back(vector *vec)
 *   @param vec The vector that shall be checked.
 *   @return Returns true if the vector is empty and false otherwise.
 **/
-inline bool vector_is_empty(vector *vec)
+inline bool vector_empty(vector *vec)
 {
   if(vec->occupied == 0)
   {
@@ -203,7 +203,7 @@ inline int vector_push_back(vector *vec, void *element)
 
 inline void *vector_pop_back(vector *vec)
 {
-  if(vector_is_empty(vec))
+  if(vector_empty(vec))
   {
     return NULL;
   }
@@ -324,7 +324,7 @@ inline int vector_assign(vector *vec, void *element, size_t index)
 **/
 inline void *vector_get_last(vector *vec)
 {
-  if(vector_is_empty(vec))
+  if(vector_empty(vec))
   {
     return NULL;
   }

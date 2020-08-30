@@ -19,7 +19,7 @@ extern void *vector_front(vector *vec);
 extern void *vector_back(vector *vec);
 extern int vector_merge(vector *restrict vec_1, vector *restrict vec_2);
 extern int vector_split(vector *vec, vector *res, size_t index);
-extern bool vector_is_empty(vector *vec);
+extern bool vector_empty(vector *vec);
 extern bool vector_index_valid(vector *vec, size_t index);
 extern int vector_clone(vector *const vec, vector *res);
 extern void vector_sort(vector *vec, int (*compar)(const void *, const void *));

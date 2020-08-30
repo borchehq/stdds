@@ -317,14 +317,14 @@ void test_vector_split()
   vector_delete(&v2);
 }
 
-void test_vector_is_empty()
+void test_vector_empty()
 {
   dsconf conf = {NULL, NULL};
   vector v; vector_new(&v, sizeof(size_t), 1, &conf);
-  assert(vector_is_empty(&v) == true);
+  assert(vector_empty(&v) == true);
   size_t val = 1;
   vector_push_back(&v, &val);
-  assert(vector_is_empty(&v) == false);
+  assert(vector_empty(&v) == false);
   vector_delete(&v);
 }
 
@@ -476,8 +476,8 @@ int main(int argc, char const *argv[])
   test_vector_merge();
   printf("[i] Testing vector_split()...\n");
   test_vector_split();
-  printf("[i] Testing vector_is_empty()...\n");
-  test_vector_is_empty();
+  printf("[i] Testing vector_empty()...\n");
+  test_vector_empty();
   printf("[i] Testing vector_index_valid()...\n");
   test_vector_index_valid();
   printf("[i] Testing vector_clone()...\n");
