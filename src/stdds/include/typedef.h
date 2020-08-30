@@ -8,5 +8,6 @@ struct type_conf_s
 {
   int (*copy_ds)(void *data, void *res);
   void (*delete_ds)(void *data);
+  int (*construct_ds)(void *data);
 };
 #endif
