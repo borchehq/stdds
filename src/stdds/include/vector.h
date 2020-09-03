@@ -203,7 +203,7 @@ inline int vector_push_back(vector *vec, void *element)
 
 inline void *vector_pop_back(vector *vec)
 {
-  if(vector_empty(vec))
+  if(vec->occupied == 0)
   {
     return NULL;
   }
@@ -215,8 +215,20 @@ inline void *vector_pop_back(vector *vec)
   }
   memcpy(ret, elem, vec->size_element);
   // Delete elem.
-  vector_remove(vec, vec->occupied - 1);
-
+  void *tmp = vec->data;
+  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  {
+    vec->conf->delete_ds(elem);
+  }  
+  vec->occupied--;
+  if(vec->allocated >= 2 * MIN_CAP && vec->allocated >= 2 * vec->occupied)
+  {
+    tmp = realloc(tmp, (vec->allocated / 2) * vec->size_element);
+    if(tmp != NULL){
+      vec->data = tmp;
+      vec->allocated /= 2;
+    }
+  }
   return ret;
 }
 

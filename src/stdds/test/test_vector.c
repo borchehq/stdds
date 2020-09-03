@@ -457,6 +457,7 @@ void test_vector_pop_back()
     assert(v.occupied == i);
     free(tmp);
   }
+  assert(v.allocated == MIN_CAP);
   vector_delete(&v);
 }
 
