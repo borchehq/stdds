@@ -1,7 +1,7 @@
 # Define library. Only source files here!
 project(libstdds VERSION 0.1 LANGUAGES C)
 
-add_library(stdds SHARED src/vector.c src/list.c src/forward_list.c src/stack.c)
+add_library(stdds SHARED src/vector.c src/list.c src/forward_list.c src/stack.c src/pair.c)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build
