@@ -1,6 +1,6 @@
 #include "vector.h"
 
-extern int vector_new(vector *vec, size_t size_element, size_t initial_size,
+extern int vector_new(vector *vec, size_t size_element, size_t initial_capacity,
                       dsconf *conf);
 extern int vector_push_back(vector *vec, void *element);
 extern void *vector_pop_back(vector *vec);
@@ -8,6 +8,7 @@ extern void vector_delete(vector *vec);
 extern int vector_insert(vector *vec, void *element, size_t index);
 extern void *vector_get(vector *vec, size_t index);
 extern int vector_assign(vector *vec, void *element, size_t index);
+extern int vector_assign_range(vector *vec, void *restrict data, size_t len);
 extern int vector_remove(vector *vec, size_t index);
 extern void *vector_get_last(vector *vec);
 extern size_t vector_size(const vector *vec);

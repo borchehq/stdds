@@ -524,6 +524,69 @@ void test_vector_resize()
   vector_delete(&v);
 }
 
+void test_vector_assign_range()
+{
+  vector v; 
+  vector_new(&v, sizeof(double), 0, NULL);
+  double a[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+
+  vector_assign_range(&v, a, 16);
+  assert(v.occupied == 16);
+  assert(v.allocated == 16);
+  for(size_t i = 0; i < 16; i++)
+  {
+    assert(*(double*)vector_at(&v, i) == a[i]);
+  }
+  vector_delete(&v);
+
+  vector_new(&v, sizeof(double), 16, NULL);
+  vector_assign_range(&v, a, 16);
+  assert(v.occupied == 16);
+  assert(v.allocated == 16);
+  for(size_t i = 0; i < 16; i++)
+  {
+    assert(*(double*)vector_at(&v, i) == a[i]);
+  }
+  vector_delete(&v);
+
+  vector_new(&v, sizeof(double), 73, NULL);
+  vector_assign_range(&v, a, 16);
+  assert(v.occupied == 16);
+  assert(v.allocated == 18);
+  for(size_t i = 0; i < 16; i++)
+  {
+    assert(*(double*)vector_at(&v, i) == a[i]);
+  }
+  vector_delete(&v);
+
+  size_t *b[16];
+  size_t *c[16];
+  for(size_t i = 0; i < 16; i++)
+  {
+    b[i] = malloc(sizeof(size_t));
+    c[i] = malloc(sizeof(size_t));
+    *b[i] = i;
+    *c[i] = 15 - i;
+  }
+
+  dsconf conf = {copy_ds, delete_ds};
+  vector_new(&v, sizeof(size_t*), 73, &conf);
+  vector_assign_range(&v, b, 16);
+  vector_assign_range(&v, c, 16);
+  vector_assign_range(&v, b, 16);
+  vector_assign_range(&v, b, 16);
+  assert(v.occupied == 16);
+  assert(v.allocated == 18);
+  for(size_t i = 0; i < 16; i++)
+  {
+    assert(**(size_t**)vector_at(&v, i) == *b[i]);
+    assert(*(size_t**)vector_at(&v, i) != b[i]);
+    free(b[i]);
+    free(c[i]);
+  }
+  vector_delete(&v);
+}
+
 int main(int argc, char const *argv[])
 {
   printf("[i] Testing vector_new()...\n");
@@ -566,5 +629,7 @@ int main(int argc, char const *argv[])
   test_vector_pop_back();
   printf("[i] Testing vector_resize()...\n");
   test_vector_resize();
+  printf("[i] Testing vector_assign_range()...\n");
+  test_vector_assign_range();
   return 0;
 }

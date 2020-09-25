@@ -29,19 +29,19 @@ struct vector_s
 *   @param initial_size Initial size of the vector.
 *   @return Returns 0 on success and -1 if an error occured.
 **/
-inline int vector_new(vector *vec, size_t size_element, size_t initial_size,
+inline int vector_new(vector *vec, size_t size_element, size_t initial_capacity,
                       dsconf *conf)
 {
-  if(initial_size == 0)
+  if(initial_capacity == 0)
   {
-    initial_size = INITIAL_CAP;
+    initial_capacity = INITIAL_CAP;
   }
-  vec->data = malloc(size_element * initial_size);
+  vec->data = malloc(size_element * initial_capacity);
   if(vec->data == NULL)
   {
     return -1;
   }
-  vec->allocated = initial_size;
+  vec->allocated = initial_capacity;
   vec->occupied = 0;
   vec->size_element = size_element;
   vec->conf = conf;
@@ -224,7 +224,8 @@ inline void *vector_pop_back(vector *vec)
   if(vec->allocated >= 2 * MIN_CAP && vec->allocated >= 2 * vec->occupied)
   {
     tmp = realloc(tmp, (vec->allocated / 2) * vec->size_element);
-    if(tmp != NULL){
+    if(tmp != NULL)
+    {
       vec->data = tmp;
       vec->allocated /= 2;
     }
@@ -328,6 +329,68 @@ inline int vector_assign(vector *vec, void *element, size_t index)
     memmove(&vec->data[index * vec->size_element], element,
             vec->size_element);
   }
+  return 0;
+}
+
+inline int vector_assign_range(vector *vec, void *restrict data, size_t len)
+{
+  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  {
+    for(size_t i = 0; i < vec->occupied; i++)
+    {
+      vec->conf->delete_ds(&vec->data[vec->size_element * i]);
+    }
+  }
+
+  size_t allocated = vec->allocated;
+  byte_t *data_resize = vec->data;
+  if(allocated >= 2 * MIN_CAP && allocated >= 2 * len)
+  {
+    while(allocated >= 2 * MIN_CAP && allocated >= 2 * len)
+    {
+      allocated /= 2;
+    }
+    data_resize = realloc(data_resize, allocated * vec->size_element);
+    if(data_resize != NULL)
+    {
+      vec->data = data_resize;
+      vec->allocated = allocated;
+    }
+    else
+    {
+      return -1;
+    }
+  }
+  else if(allocated < len)
+  {
+    while(allocated < len)
+    {
+      allocated *= 2;
+    }
+    data_resize = realloc(data_resize, allocated * vec->size_element);
+    if(data_resize != NULL)
+    {
+      vec->data = data_resize;
+      vec->allocated = allocated;
+    }
+    else
+    {
+      return -1;
+    }
+  }
+
+  if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+  {
+    for(size_t i = 0; i < len; i++)
+    {
+      vec->conf->copy_ds(&((byte_t*)data)[i * vec->size_element], &vec->data[i * vec->size_element]);
+    }
+  }
+  else
+  {
+    memcpy(vec->data, data, len * vec->size_element);
+  }
+  vec->occupied = len;
   return 0;
 }
 
