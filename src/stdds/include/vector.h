@@ -288,6 +288,140 @@ inline int vector_insert(vector *vec, void *element, size_t index)
   return 0;
 }
 
+inline int vector_insert_range(vector *vec, void *restrict data, size_t index, size_t len)
+{
+  size_t allocated = vec->allocated;
+  size_t occupied = vec->occupied;
+  byte_t *data_resize = vec->data;
+
+  if(allocated - occupied < len)
+  {
+    while(allocated - occupied < len)
+    {
+      allocated *= 2;
+    }
+    data_resize = realloc(data_resize, allocated * vec->size_element);
+    if(data_resize != NULL)
+    {
+      vec->data = data_resize;
+      vec->allocated = allocated;
+    }
+    else
+    {
+      return -1;
+    }
+  }
+
+  // Just append.
+  if(index >= vec->occupied)
+  {
+    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    {
+      for(size_t i = 0; i < len; i++)
+      {
+        vec->conf->copy_ds(&((byte_t*)data)[i * vec->size_element], 
+                           &vec->data[(vec->occupied + i) * vec->size_element]);
+      }
+    }
+    else
+    {
+      memcpy(&vec->data[vec->occupied * vec->size_element],
+             data, vec->size_element * len);
+    }
+  }
+  // Move all elements beginning from index to the right.
+  else
+  {
+    memmove(&vec->data[(index + len) * vec->size_element],
+            &vec->data[index * vec->size_element],
+            (vec->occupied - index) * vec->size_element);
+    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    {
+      for(size_t i = 0; i < len; i++)
+      {
+        vec->conf->copy_ds(&((byte_t*)data)[i * vec->size_element], 
+                           &vec->data[(index + i) * vec->size_element]);
+      }
+    }
+    else
+    {
+      memmove(&vec->data[index * vec->size_element], data,
+              vec->size_element * len);
+    }
+  }
+  vec->occupied += len;
+  return 0;
+}
+
+inline int vector_insert_fill(vector *vec, void *restrict data, size_t index, size_t len)
+{
+  size_t allocated = vec->allocated;
+  size_t occupied = vec->occupied;
+  byte_t *data_resize = vec->data;
+
+  if(allocated - occupied < len)
+  {
+    while(allocated - occupied < len)
+    {
+      allocated *= 2;
+    }
+    data_resize = realloc(data_resize, allocated * vec->size_element);
+    if(data_resize != NULL)
+    {
+      vec->data = data_resize;
+      vec->allocated = allocated;
+    }
+    else
+    {
+      return -1;
+    }
+  }
+
+  // Just append.
+  if(index >= vec->occupied)
+  {
+    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    {
+      for(size_t i = 0; i < len; i++)
+      {
+        vec->conf->copy_ds(data, &vec->data[(vec->occupied + i) * vec->size_element]);
+      }
+    }
+    else
+    {
+      for(size_t i = 0; i < len; i++)
+      {
+        memcpy(&vec->data[(vec->occupied + i) * vec->size_element],
+               data, vec->size_element);
+      }
+    }
+  }
+  // Move all elements beginning from index to the right.
+  else
+  {
+    memmove(&vec->data[(index + len) * vec->size_element],
+            &vec->data[index * vec->size_element],
+            (vec->occupied - index) * vec->size_element);
+    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    {
+      for(size_t i = 0; i < len; i++)
+      {
+        vec->conf->copy_ds(data, &vec->data[(index + i) * vec->size_element]);
+      }
+    }
+    else
+    {
+      for(size_t i = 0; i < len; i++)
+      {
+        memcpy(&vec->data[(index + i) * vec->size_element], data,
+                vec->size_element);
+      }
+    }
+  }
+  vec->occupied += len;
+  return 0;
+}
+
 /**
 *   @brief Retrieves the element at the specified index.
 *   @return The corresponding element on success and NULL on error.
@@ -389,6 +523,71 @@ inline int vector_assign_range(vector *vec, void *restrict data, size_t len)
   else
   {
     memcpy(vec->data, data, len * vec->size_element);
+  }
+  vec->occupied = len;
+  return 0;
+}
+
+inline int vector_assign_fill(vector *vec, void *restrict data, size_t len)
+{
+  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  {
+    for(size_t i = 0; i < vec->occupied; i++)
+    {
+      vec->conf->delete_ds(&vec->data[vec->size_element * i]);
+    }
+  }
+
+  size_t allocated = vec->allocated;
+  byte_t *data_resize = vec->data;
+  if(allocated >= 2 * MIN_CAP && allocated >= 2 * len)
+  {
+    while(allocated >= 2 * MIN_CAP && allocated >= 2 * len)
+    {
+      allocated /= 2;
+    }
+    data_resize = realloc(data_resize, allocated * vec->size_element);
+    if(data_resize != NULL)
+    {
+      vec->data = data_resize;
+      vec->allocated = allocated;
+    }
+    else
+    {
+      return -1;
+    }
+  }
+  else if(allocated < len)
+  {
+    while(allocated < len)
+    {
+      allocated *= 2;
+    }
+    data_resize = realloc(data_resize, allocated * vec->size_element);
+    if(data_resize != NULL)
+    {
+      vec->data = data_resize;
+      vec->allocated = allocated;
+    }
+    else
+    {
+      return -1;
+    }
+  }
+
+  if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+  {
+    for(size_t i = 0; i < len; i++)
+    {
+      vec->conf->copy_ds(data, &vec->data[i * vec->size_element]);
+    }
+  }
+  else
+  {
+    for(size_t i = 0; i < len; i++)
+    {
+      memcpy(&vec->data[i * vec->size_element], data, vec->size_element);
+    }
   }
   vec->occupied = len;
   return 0;
