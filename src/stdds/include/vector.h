@@ -833,4 +833,103 @@ inline int vector_resize(vector *vec, size_t size)
   return 0;
 }
 
+inline int vector_clear(vector *vec, bool reallocate)
+{
+  byte_t *tmp = NULL;
+
+  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  {
+    for(size_t i = 0; i < vec->occupied; i++)
+    {
+      vec->conf->delete_ds(&vec->data[vec->size_element * i]);
+    }
+  }
+
+  if(reallocate == true)
+  {
+    tmp = realloc(vec->data, MIN_CAP * vec->size_element);
+    if(tmp == NULL)
+    {
+      return -1;
+    }
+    vec->data = tmp;
+    vec->allocated = MIN_CAP;
+  }
+  vec->occupied = 0;
+  return 0;
+}
+
+inline int vector_erase(vector *vec, size_t index)
+{
+  if(index >= vec->occupied)
+  {
+    return -1;
+  }
+
+  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  {
+    vec->conf->delete_ds(&vec->data[vec->size_element * index]);
+  }
+  memmove(&vec->data[index * vec->size_element],
+          &vec->data[(index + 1) * vec->size_element],
+          (vec->occupied - index - 1) * vec->size_element);
+  vec->occupied--;
+
+  if(vec->allocated >= 2 * vec->occupied && vec->allocated >= 2 * MIN_CAP)
+  {
+    void *tmp = realloc(vec->data, (vec->allocated / 2) * vec->size_element);
+    if(tmp != NULL){
+      vec->data = tmp;
+      vec->allocated /= 2;
+    }
+    else
+    {
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
+inline int vector_erase_range(vector *vec, size_t begin, size_t end)
+{
+  if(begin >= vec->occupied || end > vec->occupied || begin >= end)
+  {
+    return -1;
+  }
+
+  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  {
+    for(size_t i = begin; i < end; i++)
+    {
+      vec->conf->delete_ds(&vec->data[vec->size_element * i]);
+    }
+  }
+  memmove(&vec->data[begin * vec->size_element],
+          &vec->data[end * vec->size_element],
+          (vec->occupied - end) * vec->size_element); 
+  vec->occupied -= (end - begin);
+
+  size_t allocated = vec->allocated;
+  if(allocated >= 2 * vec->occupied && allocated >= 2 * MIN_CAP)
+  {
+    while(allocated >= 2 * vec->occupied && allocated >= 2 * MIN_CAP)
+    {
+      allocated /= 2;
+    }
+    void *tmp = realloc(vec->data, allocated * vec->size_element);
+    if(tmp != NULL)
+    {
+      vec->data = tmp;
+      vec->allocated = allocated;
+    }
+    else
+    {
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
 #endif

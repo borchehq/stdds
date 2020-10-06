@@ -28,3 +28,6 @@ extern bool vector_index_valid(vector *vec, size_t index);
 extern int vector_clone(vector *const vec, vector *res);
 extern void vector_sort(vector *vec, int (*compar)(const void *, const void *));
 extern int vector_resize(vector *vec, size_t size);
+extern int vector_clear(vector *vec, bool reallocate);
+extern int vector_erase(vector *vec, size_t index);
+extern int vector_erase_range(vector *vec, size_t begin, size_t end);

@@ -839,6 +839,166 @@ void test_vector_insert_fill()
   vector_delete(&v);
 }
 
+void test_vector_clear()
+{
+  vector v;
+  size_t b = 12;
+  dsconf conf = {copy_ds, delete_ds, NULL};
+  size_t *x[16];
+
+  vector_new(&v, sizeof(size_t), 0, NULL);
+  vector_assign_fill(&v, &b, 16);
+  vector_clear(&v, false);
+  assert(v.allocated == 16);
+  assert(v.occupied == 0);
+  vector_assign_fill(&v, &b, 16);
+  vector_clear(&v, true);
+  assert(v.allocated == MIN_CAP);
+  assert(v.occupied == 0);
+  vector_delete(&v);
+
+  vector_new(&v, sizeof(size_t*), 0, &conf);
+  for(size_t i = 0; i < 16; i++)
+  {
+    x[i] = malloc(sizeof(size_t));
+    *x[i] = i;
+  }
+  vector_assign_range(&v, x, 16);
+  vector_clear(&v, false);
+  assert(v.allocated == 16);
+  assert(v.occupied == 0);
+  vector_assign_range(&v, x, 16);
+  vector_clear(&v, true);
+  assert(v.allocated == MIN_CAP);
+  assert(v.occupied == 0);
+  for(size_t i = 0; i < 16; i++)
+  {
+    free(x[i]);
+  }
+  vector_delete(&v);
+}
+
+void test_vector_erase()
+{
+  vector v;
+  size_t b = 12;
+  size_t a[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+  size_t *x[16];
+  dsconf conf = {copy_ds, delete_ds, NULL};
+
+  vector_new(&v, sizeof(size_t), 0, NULL);
+  vector_assign_range(&v, a, 16);
+
+  vector_erase(&v, 12);
+
+  assert(v.occupied == 15);
+  assert(v.allocated == 16);
+  assert(*(size_t*)vector_at(&v, 12) == 13);
+  for(size_t i = 0; i < 12; i++)
+  {
+    assert(*(size_t*)vector_at(&v, i) == i);
+  }
+  for(size_t i = 13; i < 15; i++)
+  {
+    assert(*(size_t*)vector_at(&v, i) == i + 1);
+  }
+
+  vector_delete(&v);
+
+  vector_new(&v, sizeof(size_t*), 0, NULL);
+  for(size_t i = 0; i < 16; i++)
+  {
+    x[i] = malloc(sizeof(size_t));
+    *x[i] = i;
+  }
+  vector_assign_range(&v, x, 16);
+  for(size_t i = 8; i < 16; i++)
+  {
+    vector_erase(&v, 8);
+  }
+  assert(v.occupied == 8);
+  assert(v.allocated == 8);
+  for(size_t i = 0; i < 8; i++)
+  {
+    assert(**(size_t**)vector_at(&v, i) == i);
+  }
+  vector_erase(&v, 0);
+  vector_erase(&v, 0);
+  for(size_t i = 0; i < 6; i++)
+  {
+    assert(**(size_t**)vector_at(&v, i) == i + 2);
+  }
+  assert(v.occupied == 6);
+  assert(v.allocated == 8);
+  
+  for(size_t i = 0; i < 16; i++)
+  {
+   free(x[i]);
+  }
+  vector_delete(&v);
+}
+
+void test_vector_erase_range()
+{
+  vector v;
+  size_t b = 12;
+  size_t a[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+  size_t *x[16];
+  dsconf conf = {copy_ds, delete_ds, NULL};
+
+  vector_new(&v, sizeof(size_t), 0, NULL);
+  vector_assign_range(&v, a, 16);
+
+  vector_erase_range(&v, 12, 13);
+  assert(v.occupied == 15);
+  assert(v.allocated == 16);
+  assert(*(size_t*)vector_at(&v, 12) == 13);
+  for(size_t i = 0; i < 12; i++)
+  {
+    assert(*(size_t*)vector_at(&v, i) == i);
+  }
+  for(size_t i = 13; i < 15; i++)
+  {
+    assert(*(size_t*)vector_at(&v, i) == i + 1);
+  }
+  vector_delete(&v);
+
+  vector_new(&v, sizeof(size_t), 0, NULL);
+  vector_assign_range(&v, a, 16);
+  vector_erase_range(&v, 0, 4);
+  vector_erase_range(&v, 8, 12);
+  vector_erase_range(&v, 7, 8);
+  assert(v.occupied == 7);
+  assert(v.allocated == 8);
+  for(size_t i = 0; i < 7; i++)
+  {
+    assert(*(size_t*)vector_at(&v, i) == i + 4);
+  }
+  vector_delete(&v);
+
+  vector_new(&v, sizeof(size_t*), 0, NULL);
+  for(size_t i = 0; i < 16; i++)
+  {
+    x[i] = malloc(sizeof(size_t));
+    *x[i] = i;
+  }
+  vector_assign_range(&v, x, 16);
+  vector_erase_range(&v, 0, 4);
+  vector_erase_range(&v, 8, 12);
+  vector_erase_range(&v, 7, 8);
+  assert(v.occupied == 7);
+  assert(v.allocated == 8);
+  for(size_t i = 0; i < 7; i++)
+  {
+    assert(**(size_t**)vector_at(&v, i) == i + 4);
+  }
+  for(size_t i = 0; i < 16; i++)
+  {
+    free(x[i]);
+  }
+  vector_delete(&v);
+}
+
 int main(int argc, char const *argv[])
 {
   printf("[i] Testing vector_new()...\n");
@@ -889,5 +1049,11 @@ int main(int argc, char const *argv[])
   test_vector_insert_range();
   printf("[i] Testing vector_insert_fill()...\n");
   test_vector_insert_fill();
+  printf("[i] Testing vector_clear()...\n");
+  test_vector_clear();
+  printf("[i] Testing vector_erase()...\n");
+  test_vector_erase();
+  printf("[i] Testing vector_erase_range()...\n");
+  test_vector_erase_range();
   return 0;
 }
