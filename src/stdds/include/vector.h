@@ -932,4 +932,9 @@ inline int vector_erase_range(vector *vec, size_t begin, size_t end)
   return 0;
 }
 
+inline void *vector_data(vector *vec)
+{
+  return vec->data;
+}
+
 #endif

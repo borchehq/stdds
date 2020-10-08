@@ -31,3 +31,4 @@ extern int vector_resize(vector *vec, size_t size);
 extern int vector_clear(vector *vec, bool reallocate);
 extern int vector_erase(vector *vec, size_t index);
 extern int vector_erase_range(vector *vec, size_t begin, size_t end);
+extern void *vector_data(vector *vec);

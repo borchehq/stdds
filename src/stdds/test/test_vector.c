@@ -999,6 +999,22 @@ void test_vector_erase_range()
   vector_delete(&v);
 }
 
+void test_vector_data()
+{
+  vector v;
+  size_t a[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+  vector_new(&v, sizeof(size_t), 0, NULL);
+
+  vector_assign_range(&v, a, 16);
+  void *data = vector_data(&v);
+
+  for(size_t i = 0; i < 16; i++)
+  {
+    assert(((size_t*)data)[i] == a[i]);
+  }
+  vector_delete(&v);
+}
+
 int main(int argc, char const *argv[])
 {
   printf("[i] Testing vector_new()...\n");
@@ -1055,5 +1071,8 @@ int main(int argc, char const *argv[])
   test_vector_erase();
   printf("[i] Testing vector_erase_range()...\n");
   test_vector_erase_range();
+  printf("[i] Testing vector_data()...\n");
+  test_vector_data();
+
   return 0;
 }
