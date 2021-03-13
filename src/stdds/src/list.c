@@ -16,9 +16,9 @@ int list_push_front(list *list, void *element)
     return -1;
   }
 
-  if(list->conf != NULL && list->conf->copy_ds != NULL) 
+  if(list->conf.copy_ds != NULL) 
   {
-    list->conf->copy_ds(element, data);
+    list->conf.copy_ds(element, data);
   }
   else
   {
@@ -57,9 +57,9 @@ int list_push_back(list *list, void *element)
     return -1;
   }
 
-  if(list->conf != NULL && list->conf->copy_ds != NULL) 
+  if(list->conf.copy_ds != NULL) 
   {
-    list->conf->copy_ds(element, data);
+    list->conf.copy_ds(element, data);
   }
   else
   {
@@ -98,9 +98,9 @@ int list_insert(list *list, size_t position, void *element)
     return -1;
   }
 
-  if(list->conf != NULL && list->conf->copy_ds != NULL) 
+  if(list->conf.copy_ds != NULL) 
   {
-    list->conf->copy_ds(element, data);
+    list->conf.copy_ds(element, data);
   }
   else
   {
@@ -162,9 +162,9 @@ void list_clear(list *list)
   while(list->head != NULL)
   { 
     tmp = list->head->next;
-    if(list->conf != NULL && list->conf->delete_ds != NULL)
+    if(list->conf.delete_ds != NULL)
     {
-      list->conf->delete_ds(list->head->data);
+      list->conf.delete_ds(list->head->data);
     }
     free(list->head->data);
     free(list->head);
@@ -186,9 +186,9 @@ void list_delete(list *list)
   while(list->head != NULL)
   { 
     tmp = list->head->next;
-    if(list->conf != NULL && list->conf->delete_ds != NULL)
+    if(list->conf.delete_ds != NULL)
     {
-      list->conf->delete_ds(list->head->data);
+      list->conf.delete_ds(list->head->data);
     }
     free(list->head->data);
     free(list->head);

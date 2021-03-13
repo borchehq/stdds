@@ -18,7 +18,7 @@ struct vector_s
   size_t allocated;
   size_t occupied;
   size_t size_element;
-  dsconf *conf;
+  dsconf conf;
 };
 
 /**
@@ -44,7 +44,20 @@ inline int vector_new(vector *vec, size_t size_element, size_t initial_capacity,
   vec->allocated = initial_capacity;
   vec->occupied = 0;
   vec->size_element = size_element;
-  vec->conf = conf;
+
+  if(conf != NULL)
+  {
+    vec->conf.construct_ds = conf->construct_ds;
+    vec->conf.copy_ds = conf->copy_ds;
+    vec->conf.delete_ds = conf->delete_ds;
+  }
+  else
+  {
+    vec->conf.construct_ds = NULL;
+    vec->conf.copy_ds = NULL;
+    vec->conf.delete_ds = NULL;
+  }
+
   return 0;
 }
 
@@ -57,11 +70,11 @@ inline void vector_delete(vector *vec)
   {
     return;
   }
-  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  if(vec->conf.delete_ds != NULL)
   {
     for(size_t i = 0; i < vec->occupied; i++)
     {
-      vec->conf->delete_ds(&vec->data[vec->size_element * i]);
+      vec->conf.delete_ds(&vec->data[vec->size_element * i]);
     }
   }
   free(vec->data);
@@ -143,9 +156,9 @@ inline int vector_remove(vector *vec, size_t index)
     return -2;
   }
   offset = vec->occupied - 1 - index;
-  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  if(vec->conf.delete_ds != NULL)
   {
-    vec->conf->delete_ds(vector_at(vec, index));
+    vec->conf.delete_ds(vector_at(vec, index));
   }
   // Close the gap if not the last element.
   if(index < vec->occupied - 1)
@@ -187,9 +200,9 @@ inline int vector_push_back(vector *vec, void *element)
     }
   }
   
-  if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+  if(vec->conf.copy_ds != NULL) 
   {
-    vec->conf->copy_ds(element, &vec->data[vec->occupied * vec->size_element]);
+    vec->conf.copy_ds(element, &vec->data[vec->occupied * vec->size_element]);
   }
   else
   {
@@ -216,9 +229,9 @@ inline void *vector_pop_back(vector *vec)
   memcpy(ret, elem, vec->size_element);
   // Delete elem.
   void *tmp = vec->data;
-  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  if(vec->conf.delete_ds != NULL)
   {
-    vec->conf->delete_ds(elem);
+    vec->conf.delete_ds(elem);
   }  
   vec->occupied--;
   if(vec->allocated >= 2 * MIN_CAP && vec->allocated >= 2 * vec->occupied)
@@ -258,9 +271,9 @@ inline int vector_insert(vector *vec, void *element, size_t index)
   // Just append.
   if(index >= vec->occupied)
   {
-    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    if(vec->conf.copy_ds != NULL) 
     {
-      vec->conf->copy_ds(element, &vec->data[vec->occupied * vec->size_element]);
+      vec->conf.copy_ds(element, &vec->data[vec->occupied * vec->size_element]);
     }
     else
     {
@@ -274,9 +287,9 @@ inline int vector_insert(vector *vec, void *element, size_t index)
     memmove(&vec->data[(index + 1) * vec->size_element],
             &vec->data[index * vec->size_element],
             (vec->occupied - index) * vec->size_element);
-    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    if(vec->conf.copy_ds != NULL) 
     {
-      vec->conf->copy_ds(element, &vec->data[index * vec->size_element]);
+      vec->conf.copy_ds(element, &vec->data[index * vec->size_element]);
     }
     else
     {
@@ -315,11 +328,11 @@ inline int vector_insert_range(vector *vec, void *restrict data, size_t index, s
   // Just append.
   if(index >= vec->occupied)
   {
-    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    if(vec->conf.copy_ds != NULL) 
     {
       for(size_t i = 0; i < len; i++)
       {
-        vec->conf->copy_ds(&((byte_t*)data)[i * vec->size_element], 
+        vec->conf.copy_ds(&((byte_t*)data)[i * vec->size_element], 
                            &vec->data[(vec->occupied + i) * vec->size_element]);
       }
     }
@@ -335,11 +348,11 @@ inline int vector_insert_range(vector *vec, void *restrict data, size_t index, s
     memmove(&vec->data[(index + len) * vec->size_element],
             &vec->data[index * vec->size_element],
             (vec->occupied - index) * vec->size_element);
-    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    if(vec->conf.copy_ds != NULL) 
     {
       for(size_t i = 0; i < len; i++)
       {
-        vec->conf->copy_ds(&((byte_t*)data)[i * vec->size_element], 
+        vec->conf.copy_ds(&((byte_t*)data)[i * vec->size_element], 
                            &vec->data[(index + i) * vec->size_element]);
       }
     }
@@ -380,11 +393,11 @@ inline int vector_insert_fill(vector *vec, void *restrict data, size_t index, si
   // Just append.
   if(index >= vec->occupied)
   {
-    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    if(vec->conf.copy_ds != NULL) 
     {
       for(size_t i = 0; i < len; i++)
       {
-        vec->conf->copy_ds(data, &vec->data[(vec->occupied + i) * vec->size_element]);
+        vec->conf.copy_ds(data, &vec->data[(vec->occupied + i) * vec->size_element]);
       }
     }
     else
@@ -402,11 +415,11 @@ inline int vector_insert_fill(vector *vec, void *restrict data, size_t index, si
     memmove(&vec->data[(index + len) * vec->size_element],
             &vec->data[index * vec->size_element],
             (vec->occupied - index) * vec->size_element);
-    if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+    if(vec->conf.copy_ds != NULL) 
     {
       for(size_t i = 0; i < len; i++)
       {
-        vec->conf->copy_ds(data, &vec->data[(index + i) * vec->size_element]);
+        vec->conf.copy_ds(data, &vec->data[(index + i) * vec->size_element]);
       }
     }
     else
@@ -453,10 +466,10 @@ inline int vector_assign(vector *vec, void *element, size_t index)
     return -1;
   }
 
-  if(vec->conf != NULL && vec->conf->copy_ds != NULL && vec->conf->delete_ds != NULL) 
+  if(vec->conf.copy_ds != NULL && vec->conf.delete_ds != NULL) 
   {
-    vec->conf->delete_ds(&vec->data[index * vec->size_element]);
-    vec->conf->copy_ds(element, &vec->data[index * vec->size_element]);
+    vec->conf.delete_ds(&vec->data[index * vec->size_element]);
+    vec->conf.copy_ds(element, &vec->data[index * vec->size_element]);
   }
   else
   {
@@ -468,11 +481,11 @@ inline int vector_assign(vector *vec, void *element, size_t index)
 
 inline int vector_assign_range(vector *vec, void *restrict data, size_t len)
 {
-  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  if(vec->conf.delete_ds != NULL)
   {
     for(size_t i = 0; i < vec->occupied; i++)
     {
-      vec->conf->delete_ds(&vec->data[vec->size_element * i]);
+      vec->conf.delete_ds(&vec->data[vec->size_element * i]);
     }
   }
 
@@ -513,11 +526,11 @@ inline int vector_assign_range(vector *vec, void *restrict data, size_t len)
     }
   }
 
-  if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+  if(vec->conf.copy_ds != NULL) 
   {
     for(size_t i = 0; i < len; i++)
     {
-      vec->conf->copy_ds(&((byte_t*)data)[i * vec->size_element], &vec->data[i * vec->size_element]);
+      vec->conf.copy_ds(&((byte_t*)data)[i * vec->size_element], &vec->data[i * vec->size_element]);
     }
   }
   else
@@ -530,11 +543,11 @@ inline int vector_assign_range(vector *vec, void *restrict data, size_t len)
 
 inline int vector_assign_fill(vector *vec, void *restrict data, size_t len)
 {
-  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  if(vec->conf.delete_ds != NULL)
   {
     for(size_t i = 0; i < vec->occupied; i++)
     {
-      vec->conf->delete_ds(&vec->data[vec->size_element * i]);
+      vec->conf.delete_ds(&vec->data[vec->size_element * i]);
     }
   }
 
@@ -575,11 +588,11 @@ inline int vector_assign_fill(vector *vec, void *restrict data, size_t len)
     }
   }
 
-  if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+  if(vec->conf.copy_ds != NULL) 
   {
     for(size_t i = 0; i < len; i++)
     {
-      vec->conf->copy_ds(data, &vec->data[i * vec->size_element]);
+      vec->conf.copy_ds(data, &vec->data[i * vec->size_element]);
     }
   }
   else
@@ -631,11 +644,11 @@ inline void *vector_to_array(const vector *vec)
   if(array == NULL){
     return NULL;
   }
-  if(vec->conf != NULL && vec->conf->copy_ds != NULL) 
+  if(vec->conf.copy_ds != NULL) 
   {
     for(size_t i = 0; i < vec->occupied; i++)
     {
-      vec->conf->copy_ds(&vec->data[i * vec->size_element], &array[i * vec->size_element]);
+      vec->conf.copy_ds(&vec->data[i * vec->size_element], &array[i * vec->size_element]);
     }
   }
   else
@@ -691,7 +704,7 @@ inline int vector_merge(vector *restrict vec_1, vector *restrict vec_2)
   vec_1->occupied += vec_2->occupied;
 
   // We don't want to delete data that is on the heap.
-  vec_2->conf = NULL;
+  vec_2->conf = (dsconf) {NULL, NULL, NULL};
   vector_delete(vec_2);
   return 0;
 }
@@ -714,20 +727,20 @@ inline int vector_split(vector *vec, vector *res, size_t index)
   }
 
   int stat = vector_new(res, vec->size_element, (vec->occupied) - index,
-  vec->conf);
+  &(vec->conf));
 
   if(stat == -1)
   {
     return -1;
   }
 
-  if(vec->conf != NULL && vec->conf->copy_ds != NULL)
+  if(vec->conf.copy_ds != NULL && vec->conf.delete_ds != NULL)
   {
     for(size_t i = index; i < vec->occupied; i++)
     {
-      vec->conf->copy_ds(&vec->data[i * vec->size_element],
+      vec->conf.copy_ds(&vec->data[i * vec->size_element],
       &res->data[(i - index) * vec->size_element]);
-      vec->conf->delete_ds(&vec->data[i * vec->size_element]);
+      vec->conf.delete_ds(&vec->data[i * vec->size_element]);
     }
   }
   else
@@ -759,17 +772,17 @@ inline int vector_split(vector *vec, vector *res, size_t index)
 **/
 inline int vector_clone(vector *const vec, vector *res)
 {
-  int stat = vector_new(res, vec->size_element, vec->allocated, vec->conf);
+  int stat = vector_new(res, vec->size_element, vec->allocated, &(vec->conf));
   if(stat == -1)
   {
     return -1;
   }
   res->occupied = vec->occupied;
-  if(vec->conf != NULL && vec->conf->copy_ds != NULL)
+  if(vec->conf.copy_ds != NULL)
   {
     for(size_t i = 0; i < vec->occupied; i++)
     {
-      int stat = vec->conf->copy_ds(&vec->data[i * vec->size_element],
+      int stat = vec->conf.copy_ds(&vec->data[i * vec->size_element],
       &res->data[i * res->size_element]);
       if(stat == -1)
       {
@@ -800,11 +813,11 @@ inline int vector_resize(vector *vec, size_t size)
 
   if(size <= vec->occupied)
   {
-    if(vec->conf != NULL && vec->conf->delete_ds != NULL) 
+    if(vec->conf.delete_ds != NULL) 
     {
       for(size_t i = size; i < vec->occupied; i++)
       {
-        vec->conf->delete_ds(&vec->data[i * vec->size_element]);
+        vec->conf.delete_ds(&vec->data[i * vec->size_element]);
       }
     }
   }
@@ -817,11 +830,11 @@ inline int vector_resize(vector *vec, size_t size)
   
   if(size > vec->occupied)
   {
-    if(vec->conf != NULL && vec->conf->construct_ds != NULL) 
+    if(vec->conf.construct_ds != NULL) 
     {
       for(size_t i = vec->occupied; i < size; i++)
       { 
-        vec->conf->construct_ds(&tmp[i * vec->size_element]);
+        vec->conf.construct_ds(&tmp[i * vec->size_element]);
       }
     }
   }
@@ -837,11 +850,11 @@ inline int vector_clear(vector *vec, bool reallocate)
 {
   byte_t *tmp = NULL;
 
-  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  if(vec->conf.delete_ds != NULL)
   {
     for(size_t i = 0; i < vec->occupied; i++)
     {
-      vec->conf->delete_ds(&vec->data[vec->size_element * i]);
+      vec->conf.delete_ds(&vec->data[vec->size_element * i]);
     }
   }
 
@@ -866,9 +879,9 @@ inline int vector_erase(vector *vec, size_t index)
     return -1;
   }
 
-  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  if(vec->conf.delete_ds != NULL)
   {
-    vec->conf->delete_ds(&vec->data[vec->size_element * index]);
+    vec->conf.delete_ds(&vec->data[vec->size_element * index]);
   }
   memmove(&vec->data[index * vec->size_element],
           &vec->data[(index + 1) * vec->size_element],
@@ -898,11 +911,11 @@ inline int vector_erase_range(vector *vec, size_t begin, size_t end)
     return -1;
   }
 
-  if(vec->conf != NULL && vec->conf->delete_ds != NULL)
+  if(vec->conf.delete_ds != NULL)
   {
     for(size_t i = begin; i < end; i++)
     {
-      vec->conf->delete_ds(&vec->data[vec->size_element * i]);
+      vec->conf.delete_ds(&vec->data[vec->size_element * i]);
     }
   }
   memmove(&vec->data[begin * vec->size_element],

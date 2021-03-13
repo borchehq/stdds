@@ -20,15 +20,28 @@ struct forward_list_s
   struct forward_node_s *head;
   size_t size_element;
   size_t size;
-  dsconf *conf;
+  dsconf conf;
 };
 
 inline int forward_list_new(forward_list *list, size_t size_element, dsconf *conf)
 {
-  list->conf = conf;
+  if(conf != NULL)
+  {
+    list->conf.construct_ds = conf->construct_ds;
+    list->conf.copy_ds = conf->copy_ds;
+    list->conf.delete_ds = conf->delete_ds;
+  }
+  else
+  {
+    list->conf.construct_ds = NULL;
+    list->conf.copy_ds = NULL;
+    list->conf.delete_ds = NULL;
+  }
   list->size_element = size_element;
   list->size = 0;
   list->head = NULL;
+
+  return 0;
 }
 
 inline bool forward_list_empty(forward_list *list)
@@ -90,9 +103,9 @@ inline int forward_list_insert_after(forward_list *list, size_t index, void *ele
     return -1;
   }
 
-  if(list->conf != NULL && list->conf->copy_ds != NULL) 
+  if(list->conf.copy_ds != NULL) 
   {
-    list->conf->copy_ds(element, data);
+    list->conf.copy_ds(element, data);
   }
   else
   {
@@ -127,9 +140,9 @@ inline int forward_list_erase_after(forward_list *list, size_t index)
   }
   new_next = tmp->next->next;
 
-  if(list->conf != NULL && list->conf->delete_ds != NULL)
+  if(list->conf.delete_ds != NULL)
   {
-    list->conf->delete_ds(tmp->next->data);
+    list->conf.delete_ds(tmp->next->data);
   }
   free(tmp->next->data);
   free(tmp->next);

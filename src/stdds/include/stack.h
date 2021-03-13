@@ -18,7 +18,7 @@ struct stack_s
   size_t allocated;
   size_t occupied;
   size_t size_element;
-  dsconf *conf;
+  dsconf conf;
 };
 
 
@@ -38,9 +38,21 @@ inline int stack_new(stack *stack, size_t size_element, size_t initial_capacity,
   stack->allocated = initial_capacity;
   stack->occupied = 0;
   stack->size_element = size_element;
-  stack->conf = conf;
-  return 0;
+  
+  if(conf != NULL)
+  {
+    stack->conf.construct_ds = conf->construct_ds;
+    stack->conf.copy_ds = conf->copy_ds;
+    stack->conf.delete_ds = conf->delete_ds;
+  }
+  else
+  {
+    stack->conf.construct_ds = NULL;
+    stack->conf.copy_ds = NULL;
+    stack->conf.delete_ds = NULL;
+  }
 
+  return 0;
 }
 
 inline void stack_delete(stack *stack)
@@ -49,11 +61,11 @@ inline void stack_delete(stack *stack)
   {
     return;
   }
-  if(stack->conf != NULL && stack->conf->delete_ds != NULL)
+  if(stack->conf.delete_ds != NULL)
   {
     for(size_t i = 0; i < stack->occupied; i++)
     {
-      stack->conf->delete_ds(&stack->data[stack->size_element * i]);
+      stack->conf.delete_ds(&stack->data[stack->size_element * i]);
     }
   }
   free(stack->data);
@@ -95,9 +107,9 @@ inline int stack_push(stack *stack, void *element)
     }
   }
   
-  if(stack->conf != NULL && stack->conf->copy_ds != NULL) 
+  if(stack->conf.copy_ds != NULL) 
   {
-    stack->conf->copy_ds(element, &stack->data[stack->occupied * stack->size_element]);
+    stack->conf.copy_ds(element, &stack->data[stack->occupied * stack->size_element]);
   }
   else
   {
@@ -125,9 +137,9 @@ inline void *stack_pop(stack *stack)
   // Delete elem.
   //stacktor_remove(stack, stack->occupied - 1);
   void *tmp = stack->data;
-  if(stack->conf != NULL && stack->conf->delete_ds != NULL)
+  if(stack->conf.delete_ds != NULL)
   {
-    stack->conf->delete_ds(elem);
+    stack->conf.delete_ds(elem);
   }  
   stack->occupied--;
   if(stack->allocated >= 2 * STACK_MIN_CAP && stack->allocated >= 2 * stack->occupied)

@@ -19,9 +19,9 @@ int forward_list_push_front(forward_list *list, void *element)
     return -1;
   }
 
-  if(list->conf != NULL && list->conf->copy_ds != NULL) 
+  if(list->conf.copy_ds != NULL) 
   {
-    list->conf->copy_ds(element, data);
+    list->conf.copy_ds(element, data);
   }
   else
   {
@@ -55,9 +55,9 @@ void forward_list_clear(forward_list *list)
   while(tmp != NULL)
   {
     next = tmp->next;
-    if(list->conf != NULL && list->conf->delete_ds != NULL)
+    if(list->conf.delete_ds != NULL)
     {
-      list->conf->delete_ds(tmp->data);
+      list->conf.delete_ds(tmp->data);
     }
     free(tmp->data);
     free(tmp);
@@ -74,9 +74,9 @@ void forward_list_delete(forward_list *list)
   while(tmp != NULL)
   {
     next = tmp->next;
-    if(list->conf != NULL && list->conf->delete_ds != NULL)
+    if(list->conf.delete_ds != NULL)
     {
-      list->conf->delete_ds(tmp->data);
+      list->conf.delete_ds(tmp->data);
     }
     free(tmp->data);
     free(tmp);

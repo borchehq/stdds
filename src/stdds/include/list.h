@@ -21,16 +21,27 @@ struct list_s
   struct node_s *tail;
   size_t size_element;
   size_t size;
-  dsconf *conf;
+  dsconf conf;
 };
 
 inline int list_new(list *list, size_t size_element, dsconf *conf)
 {
+  if(conf != NULL)
+  {
+    list->conf.construct_ds = conf->construct_ds;
+    list->conf.copy_ds = conf->copy_ds;
+    list->conf.delete_ds = conf->delete_ds;
+  }
+  else
+  {
+    list->conf.construct_ds = NULL;
+    list->conf.copy_ds = NULL;
+    list->conf.delete_ds = NULL;
+  }
   list->head = NULL;
   list->tail = NULL;
   list->size_element = size_element;
   list->size = 0;
-  list->conf = conf;
 }
 
 int list_push_front(list *list, void *element);
@@ -119,9 +130,9 @@ inline int list_erase(list *list, size_t position)
     tmp->prev->next = tmp->next;
     tmp->next->prev = tmp->prev; 
   }
-  if(list->conf != NULL && list->conf->delete_ds != NULL)
+  if(list->conf.delete_ds != NULL)
   {
-    list->conf->delete_ds(tmp->data);
+    list->conf.delete_ds(tmp->data);
   }
   free(tmp->data);
   free(tmp);
