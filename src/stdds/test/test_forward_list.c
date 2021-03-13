@@ -71,7 +71,7 @@ void test_forward_list_push_front()
      assert(*tmp == 9 - i);
      free(tmp);
   }
-
+  forward_list_delete(&list);
   dsconf conf = {copy_ds, delete_ds};
   forward_list_new(&list, sizeof(size_t*), &conf);
   size_t *x[10];
@@ -91,6 +91,7 @@ void test_forward_list_push_front()
     free(*tmp);
     free(tmp);
   }
+  forward_list_delete(&list);
 }
 
 void test_forward_list_pop_front()
@@ -109,6 +110,7 @@ void test_forward_list_pop_front()
     assert(list.size == 9 - i);
     free(tmp);
   }
+  forward_list_delete(&list);
 }
 
 void test_forward_list_insert_after()
@@ -133,7 +135,7 @@ void test_forward_list_insert_after()
     assert(*tmp == 9 - i);
     free(tmp);
   }
-
+  forward_list_delete(&list);
   dsconf conf = {copy_ds, delete_ds};
   forward_list_new(&list, sizeof(size_t*), &conf);
   size_t *x[10];
@@ -164,6 +166,7 @@ void test_forward_list_insert_after()
     free(*tmp2);
     free(tmp2);
   }
+  forward_list_delete(&list);
 }
 
 void test_forward_list_erase_after()
@@ -183,7 +186,7 @@ void test_forward_list_erase_after()
     assert(list.head->next == NULL || *(size_t*)list.head->next->data == 9 - i - 2);
   }
   free(forward_list_pop_front(&list));
-
+  forward_list_delete(&list);
   dsconf conf = {copy_ds, delete_ds};
   forward_list_new(&list, sizeof(size_t*), &conf);
   size_t *x[10];
@@ -205,6 +208,7 @@ void test_forward_list_erase_after()
   assert(list.size == 0);
   free(*last);
   free(last);
+  forward_list_delete(&list);
 }
 
 void test_forward_list_clear()
@@ -219,7 +223,7 @@ void test_forward_list_clear()
   forward_list_clear(&list);
   assert(list.size == 0);
   assert(list.head == NULL);
-
+  forward_list_delete(&list);
   dsconf conf = {copy_ds, delete_ds};
   forward_list_new(&list, sizeof(size_t*), &conf);
   size_t *x[10];
@@ -234,6 +238,7 @@ void test_forward_list_clear()
   forward_list_clear(&list);
   assert(list.size == 0);
   assert(list.head == NULL);
+  forward_list_delete(&list);
 }
 
 int main(int argc, char const *argv[])
