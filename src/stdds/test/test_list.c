@@ -24,7 +24,9 @@ void test_list_new()
   assert(list.tail == NULL);
   assert(list.size_element == sizeof(double));
   assert(list.size == 0);
-  assert(list.conf == NULL);
+  assert(list.conf.construct_ds == NULL);
+  assert(list.conf.copy_ds == NULL);
+  assert(list.conf.delete_ds == NULL);
   list_delete(&list);
 }
 

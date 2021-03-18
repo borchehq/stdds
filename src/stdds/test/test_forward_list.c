@@ -22,7 +22,9 @@ void test_forward_list_new()
   forward_list list;
   forward_list_new(&list, sizeof(size_t), NULL);
 
-  assert(list.conf == NULL);
+  assert(list.conf.construct_ds == NULL);
+  assert(list.conf.copy_ds == NULL);
+  assert(list.conf.delete_ds == NULL);
   assert(list.head == NULL);
   assert(list.size == 0);
   assert(list.size_element == sizeof(size_t));

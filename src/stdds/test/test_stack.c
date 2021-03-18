@@ -24,7 +24,9 @@ void test_stack_new()
   assert(stack.occupied == 0);
   assert(stack.allocated == STACK_INITIAL_CAP);
   assert(stack.size_element == sizeof(size_t));
-  assert(stack.conf == NULL);
+  assert(stack.conf.construct_ds == NULL);
+  assert(stack.conf.copy_ds == NULL);
+  assert(stack.conf.delete_ds == NULL);
   stack_delete(&stack);
 }
 
