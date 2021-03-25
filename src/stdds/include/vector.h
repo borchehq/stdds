@@ -227,12 +227,7 @@ inline void *vector_pop_back(vector *vec)
     return NULL;
   }
   memcpy(ret, elem, vec->size_element);
-  // Delete elem.
   void *tmp = vec->data;
-  if(vec->conf.delete_ds != NULL)
-  {
-    vec->conf.delete_ds(elem);
-  }  
   vec->occupied--;
   if(vec->allocated >= 2 * MIN_CAP && vec->allocated >= 2 * vec->occupied)
   {
