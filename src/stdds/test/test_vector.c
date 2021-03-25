@@ -459,6 +459,27 @@ void test_vector_pop_back()
   }
   assert(v.allocated == MIN_CAP);
   vector_delete(&v);
+
+  dsconf conf = (dsconf){copy_ds, delete_ds, construct_ds};
+  vector_new(&v, sizeof(size_t*), 0, &conf);
+
+  size_t *elem = malloc(sizeof(size_t));
+  for(size_t i = 0; i < 35; i++)
+  {
+    *elem = i;
+    vector_push_back(&v, &elem);
+  }
+  free(elem);
+  
+  for(size_t i = 35; i > 0; i--)
+  {
+    size_t **val = (size_t**)vector_pop_back(&v);
+    //printf("%lu\n", **val);
+    assert(**val == i - 1);
+    free(*val);
+    free(val);
+  }
+  vector_delete(&v);
 }
 
 void test_vector_resize()
