@@ -1,7 +1,7 @@
 # Define library. Only source files here!
 project(libstdds VERSION 0.1 LANGUAGES C)
 
-add_library(stdds SHARED src/vector.c src/list.c src/forward_list.c src/stack.c src/pair.c)
+add_library(stdds SHARED src/vector.c src/list.c src/forward_list.c src/stack.c src/pair.c src/deque.c)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build
@@ -43,6 +43,7 @@ add_executable(testforwardlist test/test_forward_list.c)
 add_executable(benchmarkforwardlist test/benchmark_forward_list.c)
 add_executable(teststack test/test_stack.c)
 add_executable(testpair test/test_pair.c)
+add_executable(testdeque test/test_deque.c)
 
 target_link_libraries(testvector stdds)
 target_link_libraries(benchvector stdds)
@@ -52,9 +53,11 @@ target_link_libraries(testforwardlist stdds)
 target_link_libraries(benchmarkforwardlist stdds)
 target_link_libraries(teststack stdds)
 target_link_libraries(testpair stdds)
+target_link_libraries(testdeque stdds)
 
 add_test(testvector testvector)
 add_test(testlist testlist)
 add_test(testforwardlist testforwardlist)
 add_test(teststack teststack)
 add_test(testpair testpair)
+add_test(testdeque testdeque)
