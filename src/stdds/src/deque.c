@@ -565,7 +565,7 @@ int deque_insert(deque *deque, void *element, size_t index)
         memmove(*i + size_type, *i, (SIZE_BLOCK - 1) * size_type);
         memcpy(*i, &((i - 1)[0][(SIZE_BLOCK - 1) * size_type]), size_type);
       }
-      size_t offset_val_end = &end[0][(SIZE_BLOCK - 1) * size_type] - val + size_type;
+      size_t offset_val_end = &end[0][(SIZE_BLOCK - 1) * size_type] - val;
       memmove(val + size_type, val, offset_val_end);
     }
   }
@@ -599,4 +599,11 @@ int deque_insert(deque *deque, void *element, size_t index)
       memcpy(val, element, size_type);
     }
   deque->size++;
+}
+
+int deque_erase(deque *deque, size_t index)
+{
+  size_t size_type = deque->size_type;
+  size_t size = deque->size;
+  size_t n_blocks = deque->block_map_last - deque->block_map_first;
 }

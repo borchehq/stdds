@@ -393,6 +393,7 @@ void test_deque_insert()
   assert(*(size_t*)deque_at(&deque, 191) == magic_number_1);
   deque_insert(&deque, &magic_number_1, 170);
   assert(*(size_t*)deque_at(&deque, 170) == magic_number_1);
+  
   deque_delete(&deque);
   deque_new(&deque, sizeof(size_t), NULL);
   for(size_t i = 0; i < 16; i++)
@@ -469,6 +470,7 @@ void test_deque_insert()
   {
     assert(*(size_t*)deque_at(&deque, i) == magic_number_2);
   }
+  assert(deque_size(&deque) == 516);
  // print_deque(&deque);
  // printf("--------------------------------\n");
   //printf("%lu\n", *(size_t*)deque_at(&deque, 48));
