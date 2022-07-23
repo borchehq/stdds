@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 
 #include "deque.h"
 
@@ -447,5 +446,157 @@ int deque_assign(deque *deque, void *element, size_t index)
 
 int deque_insert(deque *deque, void *element, size_t index)
 {
-  
+  size_t size_type = deque->size_type;
+  size_t size = deque->size;  
+  int status = 0;
+
+  if(index == 0)
+  {
+    return deque_push_front(deque, element);
+  }
+
+  if(index >= size)
+  {
+    return deque_push_back(deque, element);
+  }
+
+  if(deque->size - index <= index)
+  {
+    if(deque->back.current == deque->back.last)
+    {
+      if(deque->back.block == deque->block_map_last)
+        {
+          status = deque_reserve_back(deque);
+          if(status == -1)
+          {
+            return -1;
+          }
+        }
+
+      *(deque->back.block + 1) = calloc(SIZE_BLOCK, deque->size_type);
+        if(*(deque->back.block + 1) == NULL)
+        {
+          return -1;
+        }
+        deque->back.block++;
+        deque->back.current = *deque->back.block;
+        deque->back.first = deque->back.current;
+        deque->back.last = deque->back.current + 
+                          deque->size_type * (SIZE_BLOCK - 1);
+    }
+    else
+    {
+      if(deque->back.current == NULL)
+      {
+        deque->back.current = deque->back.first;
+        deque->front.current = deque->back.first;
+      }
+      else
+      {
+        deque->back.current = deque->back.current + deque->size_type;
+      }
+    }
+  }
+  else 
+  {
+    if(deque->front.current == deque->front.first)
+    {
+      if(deque->front.block == deque->block_map_first)
+      {
+        status = deque_reserve_front(deque);
+        if(status == -1)
+        {
+          return -1;
+        }
+      }
+
+      *(deque->front.block - 1) = calloc(SIZE_BLOCK, deque->size_type);
+      if(*(deque->front.block - 1) == NULL)
+      {
+        return -1;
+      }
+      deque->front.block--;
+      deque->front.current = *deque->front.block + 
+                              deque->size_type * (SIZE_BLOCK - 1);
+      deque->front.first = *deque->front.block;
+      deque->front.last = deque->front.current;
+      index++; // compensate for adding a new element to the front
+    }
+    else
+    {
+      if(deque->front.current == NULL)
+      {
+        deque->back.current = deque->front.first;
+        deque->front.current = deque->front.first;
+      }
+      else
+      {
+        deque->front.current = deque->front.current - deque->size_type;
+      }
+    }
+  }
+
+  ptrdiff_t offset = ((byte_t*)deque->front.current - 
+                      (byte_t*)deque->front.first) / size_type;
+  size_t offset_back = ((byte_t*)deque->back.current - 
+                        (byte_t*)deque->back.first);
+  size_t offset_front = (byte_t*)deque->front.last - 
+                        (byte_t*)deque->front.current;                                   
+  byte_t *val = &(deque->front.block
+              [(index + offset) / SIZE_BLOCK]
+              [((index + offset) % SIZE_BLOCK) * size_type]);
+  size_t offset_val;
+  byte_t **start = NULL;
+  byte_t **end = &(deque->front.block[(index + offset) / SIZE_BLOCK]);
+  if(deque->size - index <= index)
+  {
+    offset_val = ((byte_t*)deque->back.current - val);
+    start = deque->back.block;
+    end = &(deque->front.block[(index + offset) / SIZE_BLOCK]);
+    if(start == end) {
+      memmove(val + size_type, val, offset_val);
+    }
+    else 
+    {
+      memmove(deque->back.first + size_type, deque->back.first, offset_back);
+      memcpy(deque->back.first, &((start - 1)[0][(SIZE_BLOCK - 1) * size_type]), size_type);
+      for(byte_t **i = start - 1; i >= end + 1; i--)
+      {
+        memmove(*i + size_type, *i, (SIZE_BLOCK - 1) * size_type);
+        memcpy(*i, &((i - 1)[0][(SIZE_BLOCK - 1) * size_type]), size_type);
+      }
+      size_t offset_val_end = &end[0][(SIZE_BLOCK - 1) * size_type] - val + size_type;
+      memmove(val + size_type, val, offset_val_end);
+    }
+  }
+  else
+  {
+    offset_val = ((byte_t*)deque->front.current - val);
+    start = deque->front.block;
+    if(start == end) {
+      memmove((byte_t*)deque->front.current, 
+              (byte_t*)deque->front.current + size_type, offset_val);
+    }
+      else 
+    {
+      memmove((byte_t*)deque->front.current, (byte_t*)deque->front.current + size_type, offset_front);
+      memcpy(deque->front.last, &((start + 1)[0][0]), size_type);
+      for(byte_t **i = start + 1; i <= end - 1; i++)
+      {
+        memmove(*i, *i + size_type, (SIZE_BLOCK - 1) * size_type);
+        memcpy(&i[0][(SIZE_BLOCK - 1) * size_type], &(i + 1)[0][0], size_type);
+      }
+      size_t offset_val_end = val - &end[0][0] + size_type;
+      memmove(&end[0][0], &end[0][1], offset_val_end);
+    }
+  }
+   if(deque->conf.copy_ds != NULL) 
+    {
+      deque->conf.copy_ds(element, val);
+    }
+    else
+    {
+      memcpy(val, element, size_type);
+    }
+  deque->size++;
 }

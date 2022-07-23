@@ -5,6 +5,7 @@
 #define SIZE_MAP   1
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "typedef.h"
 
@@ -34,5 +35,11 @@ int deque_push_front(deque *deque, void *element);
 void *deque_pop_back(deque *deque);
 void *deque_pop_front(deque *deque);
 void *deque_at(deque *deque, size_t index);
+void *deque_back(deque *deque);
+void *deque_front(deque *deque);
+size_t deque_size(deque *deque);
+bool deque_empty(deque *deque);
+int deque_assign(deque *deque, void *element, size_t index);
+int deque_insert(deque *deque, void *element, size_t index);
 
 #endif

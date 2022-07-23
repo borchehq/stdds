@@ -340,6 +340,141 @@ void test_deque_at()
   deque_delete(&deque);
 }
 
+void print_deque(deque *deque)
+{
+  // Print the first block.
+  printf("[ ");
+  for(byte_t *i = deque->front.current; i <= deque->front.last;
+      i += sizeof(size_t))
+  {
+    printf("%lu ", *(size_t*)i);
+  }
+  printf(" ]\n");
+
+  // Print the blocks in between.
+  for(byte_t **j = deque->front.block + 1; j < deque->back.block; j++)
+  {
+    printf("[ ");
+    for(size_t i = 0; i < SIZE_BLOCK; i++)
+    {
+       printf("%lu ", ((size_t*)j[0])[i]);
+    }
+    printf(" ]\n");
+  }
+
+  // Print the last block.
+  printf("[ ");
+  for(byte_t *i = deque->back.first; i <= deque->back.current;
+      i += sizeof(size_t))
+  {
+    printf("%lu ", *(size_t*)i);
+  }
+  printf(" ]\n");
+}
+
+void test_deque_insert()
+{
+  deque deque;
+  deque_new(&deque, sizeof(size_t), NULL);
+  size_t size = 190;
+  size_t magic_number_1 = 0;
+  size_t magic_number_2 = 1;
+  size_t magic_number_3 = 2;
+
+  for(size_t i = 0; i < size; i++)
+  {
+    size_t k = 10;
+    deque_push_back(&deque, &k);
+  }
+
+  deque_insert(&deque, &magic_number_1, 0);
+  deque_insert(&deque, &magic_number_1, 191);
+  assert(*(size_t*)deque_at(&deque, 0) == magic_number_1);
+  assert(*(size_t*)deque_at(&deque, 191) == magic_number_1);
+  deque_insert(&deque, &magic_number_1, 170);
+  assert(*(size_t*)deque_at(&deque, 170) == magic_number_1);
+  deque_delete(&deque);
+  deque_new(&deque, sizeof(size_t), NULL);
+  for(size_t i = 0; i < 16; i++)
+  {
+    deque_push_back(&deque, &magic_number_1);
+  }
+  for(size_t i = 0; i < 16; i++)
+  {
+    deque_push_back(&deque, &magic_number_2);
+  }
+  for(size_t i = 0; i < 16; i++)
+  {
+    deque_push_back(&deque, &magic_number_3);
+  }
+  
+  for(size_t i = 0; i < 16; i++)
+  {
+    assert(*(size_t*)deque_at(&deque, i) == magic_number_1);
+  }
+  for(size_t i = 16; i < 32; i++)
+  {
+    assert(*(size_t*)deque_at(&deque, i) == magic_number_2);
+  }
+  for(size_t i = 32; i < 48; i++)
+  {
+    assert(*(size_t*)deque_at(&deque, i) == magic_number_3);
+  }
+  //print_deque(&deque);
+  //printf("--------------------------------\n");
+  deque_insert(&deque, &magic_number_1, 0);
+  assert(*(size_t*)deque_at(&deque, 0) == magic_number_1);
+  deque_insert(&deque, &magic_number_1, 49);
+  assert(*(size_t*)deque_at(&deque, 49) == magic_number_1);
+  //print_deque(&deque);
+  //printf("--------------------------------\n");
+  deque_insert(&deque, &magic_number_1, 32);
+  assert(*(size_t*)deque_at(&deque, 32) == magic_number_1);
+  //print_deque(&deque);
+  //printf("--------------------------------\n");
+
+  deque_delete(&deque);
+  deque_new(&deque, sizeof(size_t), NULL);
+  for(size_t i = 0; i < 16; i++)
+  {
+    deque_push_back(&deque, &magic_number_1);
+  }
+  for(size_t i = 0; i < 500; i++)
+  {
+    deque_insert(&deque, &magic_number_2, 0);
+  }
+  for(size_t i = 0; i < 500; i++)
+  {
+    assert(*(size_t*)deque_at(&deque, i) == magic_number_2);
+  }
+   for(size_t i = 500; i < 516; i++)
+  {
+    assert(*(size_t*)deque_at(&deque, i) == magic_number_1);
+  }
+  deque_delete(&deque);
+  deque_new(&deque, sizeof(size_t), NULL);
+  for(size_t i = 0; i < 16; i++)
+  {
+    deque_push_back(&deque, &magic_number_1);
+  }
+  for(size_t i = 0; i < 500; i++)
+  {
+    deque_insert(&deque, &magic_number_2, deque_size(&deque));
+  }
+  for(size_t i = 0; i < 16; i++)
+  {
+    assert(*(size_t*)deque_at(&deque, i) == magic_number_1);
+  }
+   for(size_t i = 16; i < 516; i++)
+  {
+    assert(*(size_t*)deque_at(&deque, i) == magic_number_2);
+  }
+ // print_deque(&deque);
+ // printf("--------------------------------\n");
+  //printf("%lu\n", *(size_t*)deque_at(&deque, 48));
+  deque_delete(&deque);
+}
+
 int main(int argc, char const *argv[])
 {
   /*deque deque;
@@ -369,7 +504,20 @@ int main(int argc, char const *argv[])
     printf("%lu: %f\n", i, *(double*)(deque.front.first + sizeof(double) * i));
   }
   deque_delete(&deque);*/
-
+  /*deque deq;
+  deque_new(&deq, sizeof(int), NULL);
+  printf("%lu\n", deq.front.first);
+  printf("%lu\n", deq.front.block[0]);
+  byte_t **test = (byte_t**)256;
+  printf("%lu,%lu\n", test, test - 1);*/
+  /*int t[5] = {1,2,3,4,5};
+  for(int i = 0; i < 5; i++) {
+    printf("t:%i\n", t[i]);
+  }
+  memmove(t + 1, t, 4 * sizeof(int));
+  for(int i = 0; i < 5; i++) {
+    printf("t:%i\n", t[i]);
+  }*/
   test_deque_push_back();
   test_deque_push_front();
   test_deque_push_interplay();
@@ -377,5 +525,6 @@ int main(int argc, char const *argv[])
   test_deque_pop_back();
   test_deque_pop_front();
   test_deque_at();
+  test_deque_insert();
   return 0;
 }
