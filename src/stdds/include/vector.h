@@ -36,14 +36,14 @@ inline int vector_new(vector *vec, size_t size_element, size_t initial_capacity,
   {
     initial_capacity = INITIAL_CAP;
   }
+  vec->allocated = initial_capacity;
+  vec->occupied = 0;
+  vec->size_element = size_element;
   vec->data = malloc(size_element * initial_capacity);
   if(vec->data == NULL)
   {
     return -1;
   }
-  vec->allocated = initial_capacity;
-  vec->occupied = 0;
-  vec->size_element = size_element;
 
   if(conf != NULL)
   {
