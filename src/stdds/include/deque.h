@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 #include "typedef.h"
+#include "vector.h"
 
 typedef struct deque_s deque;
 typedef struct deque_iterator_s deque_iterator;
@@ -41,5 +42,6 @@ size_t deque_size(deque *deque);
 bool deque_empty(deque *deque);
 int deque_assign(deque *deque, void *element, size_t index);
 int deque_insert(deque *deque, void *element, size_t index);
+int deque_erase(deque *deque, size_t index);
 
 #endif

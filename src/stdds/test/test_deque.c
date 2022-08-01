@@ -477,12 +477,132 @@ void test_deque_insert()
   deque_delete(&deque);
 }
 
+void test_deque_erase()
+{
+  deque deque;
+  deque_new(&deque, sizeof(size_t), NULL);
+  size_t size = 190;
+
+  for(size_t i = 0; i < size; i++)
+  {
+    deque_push_back(&deque, &i);
+  }
+
+  for(size_t i = 0; i < size; i++)
+  {
+    //printf("val: %lu, i: %lu\n", *(size_t*)deque_at(&deque, 0), i);
+    assert(*(size_t*)deque_at(&deque, 0) == i);
+    deque_erase(&deque, 0);
+  }
+
+  deque_delete(&deque);
+
+  deque_new(&deque, sizeof(size_t), NULL);
+
+  for(size_t i = 0; i < size; i++)
+  {
+    deque_push_front(&deque, &i);
+  }
+
+  for(size_t i = 0; i < size; i++)
+  {
+    //printf("val: %lu, i: %lu\n", *(size_t*)deque_at(&deque, 0), i);
+    assert(*(size_t*)deque_at(&deque, 0) == size - 1 - i);
+    deque_erase(&deque, 0);
+  }
+
+  deque_delete(&deque);
+
+  deque_new(&deque, sizeof(size_t), NULL);
+
+  for(size_t i = 0; i < size; i++)
+  {
+    deque_push_back(&deque, &i);
+  }
+
+  for(size_t i = 0; i < 20; i++)
+  {
+    deque_erase(&deque, 3);
+    assert(*(size_t*)deque_at(&deque, 3) == 3 + 1 + i);
+  }
+
+  deque_delete(&deque);
+
+  deque_new(&deque, sizeof(size_t), NULL);
+
+  for(size_t i = 0; i < size; i++)
+  {
+    deque_push_back(&deque, &i);
+  }
+
+  for(size_t i = 0; i < 20; i++)
+  {
+    deque_erase(&deque, 167);
+    //printf("val: %lu\n", *(size_t*)deque_at(&deque, 167));
+    assert(*(size_t*)deque_at(&deque, 167) == 167 + 1 + i);
+  }
+
+  deque_delete(&deque);
+
+  dsconf conf = {.construct_ds = construct_ds, 
+                 .copy_ds = NULL, 
+                 .delete_ds = delete_ds};
+  
+  deque_new(&deque, sizeof(size_t*), &conf);
+
+  for(size_t i = 0; i < size; i++)
+  {
+    size_t *k = malloc(sizeof(size_t));
+    *k = i;
+    deque_push_back(&deque, &k);
+  }
+
+  for(size_t i = 0; i < 20; i++)
+  {
+    deque_erase(&deque, 3);
+    assert(**(size_t**)deque_at(&deque, 3) == 3 + 1 + i);
+  }
+  deque_delete(&deque);
+
+  deque_new(&deque, sizeof(size_t*), &conf);
+
+  for(size_t i = 0; i < size; i++)
+  {
+    size_t *k = malloc(sizeof(size_t));
+    *k = i;
+    deque_push_back(&deque, &k);
+  }
+
+  for(size_t i = 0; i < 20; i++)
+  {
+    deque_erase(&deque, 167);
+    assert(**(size_t**)deque_at(&deque, 167) == 167 + 1 + i);
+  }
+  deque_delete(&deque);
+
+  deque_new(&deque, sizeof(size_t*), &conf);
+
+  for(size_t i = 0; i < size; i++)
+  {
+    size_t *k = malloc(sizeof(size_t));
+    *k = i;
+    deque_push_back(&deque, &k);
+  }
+   for(size_t i = 0; i < size; i++)
+  {
+    deque_erase(&deque, 0);
+    assert(deque.size == size - 1 - i);
+  }
+  //printf("%lu\n", deque.block_map_last - deque.block_map_first);
+  //printf("%lu\n", deque.back.block - deque.front.block);
+  deque_delete(&deque);
+}
+
 int main(int argc, char const *argv[])
 {
   /*deque deque;
   dsconf conf = {NULL, NULL, NULL};
   deque_new(&deque, sizeof(double), &conf);
-
   deque.front.current = deque.back.current = deque.back.first;
   for(size_t i = 0; i < SIZE_BLOCK; i++)
   {
@@ -494,7 +614,6 @@ int main(int argc, char const *argv[])
     printf("%lu: %f\n", i, *(double*)(deque.front.first + sizeof(double) * i));
   }
   deque_reserve_back(&deque);
-
    deque_reserve_back(&deque);
     deque_reserve_back(&deque);
     deque_reserve_front(&deque);
@@ -528,5 +647,7 @@ int main(int argc, char const *argv[])
   test_deque_pop_front();
   test_deque_at();
   test_deque_insert();
+  printf("[i] Testing deque_erase()...\n");
+  test_deque_erase();
   return 0;
 }

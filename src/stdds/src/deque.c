@@ -605,5 +605,140 @@ int deque_erase(deque *deque, size_t index)
 {
   size_t size_type = deque->size_type;
   size_t size = deque->size;
-  size_t n_blocks = deque->block_map_last - deque->block_map_first;
+  ptrdiff_t offset = ((byte_t*)deque->front.current - 
+                      (byte_t*)deque->front.first) / size_type;
+  byte_t *val = &(deque->front.block                                  
+              [(index + offset) / SIZE_BLOCK]
+              [((index + offset) % SIZE_BLOCK) * size_type]); // Pointer to element at index.
+  //printf("Val: %lu\n", *(size_t*)val);
+  // Check if index is within the range of the deque.
+  if(index >= deque->size)
+  {
+    return -1;
+  }
+  // Delete element at index, check if deconstructor is available.
+  if(deque->conf.delete_ds != NULL)
+  {
+    deque->conf.delete_ds(val);
+  }
+  // Fill now empty space.
+  if(size - index <= index)
+  {
+    byte_t **start = &(deque->front.block[(index + offset) / SIZE_BLOCK]);
+    byte_t **end = deque->back.block;
+    size_t range = (SIZE_BLOCK - 1 - ((index + offset) % SIZE_BLOCK)) * size_type;
+    byte_t *last_element = &((*start)[(SIZE_BLOCK - 1) * size_type]);
+
+    //if(deque->back.block == 
+    //   &(deque->front.block[(index + offset) / SIZE_BLOCK]))
+    //{
+    //  range = ((deque->back.current) - val);
+    //  memmove(val, val + size_type, range);
+    //}
+    //else
+    //{
+    memmove(val, val + size_type, range);
+    //}                             
+    for(byte_t **i = start + 1; i <= end; i++)
+    {
+      val = *i;
+      range = (SIZE_BLOCK - 1) * size_type;
+      memcpy(last_element, *i, size_type);
+      memmove(val, val + size_type, range);
+      last_element = &((*i)[(SIZE_BLOCK - 1) * size_type]);
+    }
+
+    if(deque->back.current == deque->back.first)
+    {
+      if(deque->back.block != deque->front.block)
+      {
+        free(*deque->back.block--);
+        deque->back.first = deque->back.block[0];
+        deque->back.last =  &deque->back.block[0][(SIZE_BLOCK - 1) * deque->size_type];
+        deque->back.current = deque->back.last;
+      }
+      else
+      {
+        deque->back.current = NULL;
+        deque->front.current = NULL;
+      }
+    }
+    else
+    {
+      deque->back.current -= size_type;
+    }
+  }
+  else // size - index > index
+  {
+    byte_t **start = &(deque->front.block[(index + offset) / SIZE_BLOCK]);
+    byte_t **end = deque->front.block;
+    size_t range = ((index + offset) % SIZE_BLOCK) * size_type;
+    byte_t *first_element = &((*start)[0]);
+
+    //if(deque->front.block == 
+    //   &(deque->front.block[(index + offset) / SIZE_BLOCK]))
+    //{
+    //  //memmove(*start + size_type, *start, range);
+    //  range = (val - (deque->front.current));
+    //  memmove(deque->front.current + size_type, deque->front.current, range);
+    //}
+    //else
+    //{
+    memmove(*start + size_type, *start, range);
+    //}
+                          
+    for(byte_t **i = start - 1; i >= end; i--)
+    {
+      val = *i;
+      range = (SIZE_BLOCK - 1) * deque->size_type;
+      memcpy(first_element, &val[(SIZE_BLOCK - 1) * deque->size_type],
+             size_type);
+      memmove(val + size_type, val, range);
+      first_element = *i;
+    }
+
+    if(deque->front.current == deque->front.last)
+    {
+      if(deque->back.block != deque->front.block)
+      {
+        free(*deque->front.block++);
+        deque->front.first = deque->front.block[0];
+        deque->front.last =  &deque->front.block[0][(SIZE_BLOCK - 1) * deque->size_type];
+        deque->front.current = deque->front.first;
+        //free(*(deque->front.block - 1));
+      }
+      else
+      {
+        deque->back.current = NULL;
+        deque->front.current = NULL;
+      }
+    }
+    else
+    {
+      deque->front.current += size_type;
+    }
+  }
+  deque->size--;
+
+  ptrdiff_t range_active = deque->back.block - deque->front.block + 1;
+  ptrdiff_t range_map = deque->block_map_last - deque->block_map_first + 1;
+  ptrdiff_t free_front = deque->front.block - deque->block_map_first;
+  ptrdiff_t free_back = deque->block_map_last - deque->back.block;
+
+  if(range_map >= 2 * range_active && range_map >= 2 * SIZE_MAP)
+  {
+    memmove(deque->front.block - free_front / 2, deque->front.block,
+            range_active * sizeof(byte_t*));
+    void *tmp = realloc(deque->block_map_first, (range_map - free_front / 2 - free_back / 2) * sizeof(byte_t*));
+    if(tmp == NULL)
+    {
+      memmove(deque->front.block + free_front / 2, deque->front.block,
+              range_active * sizeof(byte_t*));
+      return -1;
+    }
+    deque->block_map_first = tmp;
+    deque->block_map_last = deque->block_map_first + (range_map - free_front / 2 - free_back / 2) - 1;
+    deque->back.block = deque->block_map_last - (free_back - free_back / 2);
+    deque->front.block = deque->block_map_first + (free_front - free_front / 2);
+  }
 }
